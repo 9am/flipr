@@ -1,31 +1,26 @@
 import Point from './point';
 
-type abc = [
-    a:number,
-    b:number,
-    c:number,
-];
+type abc = [a: number, b: number, c: number];
 
 class Line {
     id: string;
-    private _points: Point[];
+    private _points: [Point, Point];
     private _abc: abc;
     private _mp: Point; // middle point
 
-    constructor(abc: abc, id: string)
-    constructor(points: [Point, Point], id: string)
+    constructor(abc: abc, id: string);
+    constructor(points: [Point, Point], id: string);
     constructor(input: any, id = '') {
         this.id = id;
         this._mp = new Point(0, 0);
         if (input.some((item: Point | number) => item.constructor.name === 'Point')) {
             this._points = input;
             this._points.forEach(
-                (point, index) => point.id = point.id || [this.id, index].join('-'),
+                (point, index) => (point.id = point.id || [this.id, index].join('-'))
             );
             this._abc = this.abc;
         } else {
             // start with abc
-            this._points = [];
             this._abc = input as abc;
         }
     }
@@ -35,11 +30,11 @@ class Line {
     }
 
     get abc(): abc {
-        if (this.points.length) {
-            const [p0, p1] = this.points;
+        if (this.points?.length) {
+            const [p0, p1] = this.points as [Point, Point];
             const m = p1.y - p0.y;
             const n = p1.x - p0.x;
-            const a =  m;
+            const a = m;
             const b = -n;
             const c = n * p0.y - m * p0.x;
             return [a, b, c];
@@ -57,7 +52,7 @@ class Line {
     }
 
     getMsAbc(): abc {
-        const [p0, p1] = this.points;
+        const [p0, p1] = this.points as [Point, Point];
         const [a, b] = this.abc;
         this._mp.val = [(p0.x + p1.x) / 2, (p0.y + p1.y) / 2];
         if (a === 0) {
@@ -87,7 +82,7 @@ class Line {
         const pa = Math.pow(a, 2);
         const pb = Math.pow(b, 2);
         const rx = ((pb - pa) * x - 2 * a * b * y - 2 * a * c) / (pa + pb);
-        const ry = b / a * (rx - x) + y;
+        const ry = (b / a) * (rx - x) + y;
         return new Point(rx, ry);
     }
 
@@ -101,11 +96,11 @@ class Line {
     }
 
     include(p: Point): boolean {
-        const sum = p.dist(this.points[0]) + p.dist(this.points[1]);
-        const len = this.points[0].dist(this.points[1]);
+        const [p0, p1] = this.points as [Point, Point];
+        const sum = p.dist(p0) + p.dist(p1);
+        const len = p0.dist(p1);
         return Math.abs(sum - len) < 1e-10;
     }
-
 }
 
 export default Line;

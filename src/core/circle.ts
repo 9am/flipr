@@ -13,14 +13,12 @@ class Circle extends Point {
         return this.dist(p) <= this.r;
     }
 
-    clone(): Circle {
+    override clone(): Circle {
         return new Circle(this.x, this.y, this.r);
     }
 
-    isEqual(point: Circle): boolean {
-        return point.x === this.x
-            && point.y === this.y
-            && point.r === this.r;
+    override isEqual(point: Circle): boolean {
+        return point.x === this.x && point.y === this.y && point.r === this.r;
     }
 
     cross(line: Line): Point[] {
@@ -28,10 +26,7 @@ class Circle extends Point {
         const t = Math.atan(k);
         const y = Math.sin(t) * this.r;
         const x = Math.cos(t) * this.r;
-        return [
-            new Point(this.x - x, this.y - y),
-            new Point(this.x + x, this.y + y),
-        ]
+        return [new Point(this.x - x, this.y - y), new Point(this.x + x, this.y + y)];
     }
 }
 

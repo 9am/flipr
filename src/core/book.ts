@@ -1,12 +1,22 @@
 import Area from './area';
-import Page, { Direction } from './page';
+import Page from './page';
 import Circle from './circle';
 import Line from './line';
 import Point from './point';
+import { Align, Direction } from '../type';
 
-export enum Align {
-    HORIZONTAL = 'horizontal',
-    VERTICAL = 'vertical',
+export enum TriggerName {
+    TL = 'tl',
+    TR = 'tr',
+    BL = 'bl',
+    BR = 'br',
+}
+
+export enum PageName {
+    PREV = 'prev',
+    CURR = 'curr',
+    BACK = 'back',
+    FRONT = 'front',
 }
 
 class Book extends Area {
@@ -15,145 +25,202 @@ class Book extends Area {
     align: Align;
     bl: Line; // base line
     ml: Line; // middle line
-    pMap: Record<string, Page> = {}; // map of pages
-    tMap: Record<string, Area> = {}; // map of trigger area
-    gMap: Record<string, Area[]> = {}; // map of trigger area group for clipping calculation
-    rMap: Map<Area[], Circle[]> = new Map(); // map of restriction circle
+    pages: Record<PageName, Page>; // pages object
+    triggers: Record<TriggerName, Area>; // trigger object
+    rMap: Map<Area, Circle[]> = new Map(); // map of restriction circle
+    dMap: Map<Area, [Point, Direction]> = new Map(); // map of destination
+    aMap: Map<Area, [Area, Area, Point, number, number]> = new Map(); // map of active handle
 
     constructor(
         points: [tl: Point, tr: Point, br: Point, bl: Point],
         tSize = 100,
-        align: Align = Align.HORIZONTAL,
+        align: Align = Align.HORIZONTAL
     ) {
         super(points, '');
         this.align = align;
-        this.bl = new Line([
-            new Point(),
-            new Point(),
-        ], '');
+        this.bl = new Line([new Point(), new Point()], '');
         this.ml = new Line([0, 0, 0], '');
 
-        this.pMap = this.preparePage(points);
-        this.tMap = this.prepareTrigger(points, tSize);
-        this._active = this.tMap.tl;
-        const [top, right, bottom, left] = [
-            [this.tMap.tr, this.tMap.tl],
-            [this.tMap.tr, this.tMap.br],
-            [this.tMap.br, this.tMap.bl],
-            [this.tMap.tl, this.tMap.bl],
-        ];
-        this.gMap = this.prepareTriggerGroup([top, right, bottom, left]);
-        this.rMap = this.prepareRestrain([top, right, bottom, left]);
+        this.pages = this.preparePage(points);
+        this.triggers = this.prepareTrigger(points, tSize);
+        this.aMap = this.prepareActiveMap();
+        this.rMap = this.prepareRestrainMap();
+        this.dMap = this.prepareDestinationMap();
+        this._active = this.triggers.tl;
+        // const [top, right, bottom, left] = [
+        //     [this.triggers.tr, this.triggers.tl],
+        //     [this.triggers.tr, this.triggers.br],
+        //     [this.triggers.br, this.triggers.bl],
+        //     [this.triggers.tl, this.triggers.bl],
+        // ];
     }
 
-    private preparePage(points: Point[]): Record<string, Page> {
+    private preparePage(points: [Point, Point, Point, Point]): Record<string, Page> {
         const [tl, tr, br, bl] = points;
-        const [w, h] = this.align === Align.HORIZONTAL
-            ? [(tr.x - tl.x) / 2, br.y - tr.y]
-            : [tr.x - tl.x, (br.y - tr.y) / 2];
+        const [w, h] =
+            this.align === Align.HORIZONTAL
+                ? [(tr.x - tl.x) / 2, br.y - tr.y]
+                : [tr.x - tl.x, (br.y - tr.y) / 2];
+        const currOrigin =
+            this.align === Align.HORIZONTAL ? tl.getMiddle(tr) : tl.getMiddle(bl);
         return {
-            prev: new Page(tl.clone(), w, h, 1, Direction.PREV),
-            curr: new Page(
-                this.align === Align.HORIZONTAL ? tl.getMiddle(tr) : tl.getMiddle(bl),
+            prev: new Page({
+                origin: tl.clone(),
                 w,
                 h,
-                1,
-                Direction.NEXT,
-            ),
-            front: new Page(tl.clone(), w, h, 2, Direction.PREV, this.align),
-            back: new Page(tl.clone(), w, h, 3, Direction.PREV, this.align),
+                offset: -1,
+                align: this.align,
+                id: PageName.PREV,
+            }),
+            curr: new Page({
+                origin: currOrigin,
+                w,
+                h,
+                offset: 0,
+                align: this.align,
+                id: PageName.CURR,
+            }),
+            front: new Page({
+                origin: tl.clone(),
+                w,
+                h,
+                offset: 1,
+                align: this.align,
+                id: PageName.FRONT,
+            }),
+            back: new Page({
+                origin: tl.clone(),
+                w,
+                h,
+                offset: 2,
+                align: this.align,
+                id: PageName.BACK,
+            }),
         };
     }
 
-    private prepareTrigger(points: Point[], tSize: number): Record<string, Area> {
+    private prepareTrigger(
+        points: [Point, Point, Point, Point],
+        tSize: number
+    ): Record<string, Area> {
         const [tl, tr, br, bl] = points;
         return {
-            tl: new Area([
-                tl,
-                new Point(tl.x + tSize, tl.y),
-                new Point(tl.x + tSize, tl.y + tSize),
-                new Point(tl.x, tl.y + tSize),
-            ], 'tl'),
-            tr: new Area([
-                tr,
-                new Point(tr.x - tSize, tr.y),
-                new Point(tr.x - tSize, tr.y + tSize),
-                new Point(tr.x, tr.y + tSize),
-            ], 'tr'),
-            br: new Area([
-                br,
-                new Point(br.x - tSize, br.y),
-                new Point(br.x - tSize, br.y - tSize),
-                new Point(br.x, br.y - tSize),
-            ], 'br'),
-            bl: new Area([
-                bl,
-                new Point(bl.x + tSize, bl.y),
-                new Point(bl.x + tSize, bl.y - tSize),
-                new Point(bl.x, bl.y - tSize),
-            ], 'bl'),
+            tl: new Area(
+                [
+                    tl,
+                    new Point(tl.x + tSize, tl.y),
+                    new Point(tl.x + tSize, tl.y + tSize),
+                    new Point(tl.x, tl.y + tSize),
+                ],
+                'tl'
+            ),
+            tr: new Area(
+                [
+                    tr,
+                    new Point(tr.x - tSize, tr.y),
+                    new Point(tr.x - tSize, tr.y + tSize),
+                    new Point(tr.x, tr.y + tSize),
+                ],
+                'tr'
+            ),
+            br: new Area(
+                [
+                    br,
+                    new Point(br.x - tSize, br.y),
+                    new Point(br.x - tSize, br.y - tSize),
+                    new Point(br.x, br.y - tSize),
+                ],
+                'br'
+            ),
+            bl: new Area(
+                [
+                    bl,
+                    new Point(bl.x + tSize, bl.y),
+                    new Point(bl.x + tSize, bl.y - tSize),
+                    new Point(bl.x, bl.y - tSize),
+                ],
+                'bl'
+            ),
         };
     }
 
-    private prepareTriggerGroup([top, right, bottom, left]: Area[][]): Record<string, Area[]> {
+    private prepareActiveMap(): Map<Area, [Area, Area, Point, number, number]> {
+        const { tl, tr, bl, br } = this.triggers;
+        const { prev, curr } = this.pages;
         return this.align === Align.HORIZONTAL
-            ? {
-                [Direction.PREV]: left,
-                [Direction.NEXT]: right,
-            }
-            : {
-                [Direction.PREV]: top,
-                [Direction.NEXT]: bottom,
-            };
+            ? new Map<Area, [Area, Area, Point, number, number]>([
+                  [tl, [tl, bl, prev.root, -2, -3]],
+                  [tr, [tr, br, curr.root, 1, 2]],
+                  [bl, [tl, bl, prev.root, -2, -3]],
+                  [br, [tr, br, curr.root, 1, 2]],
+              ])
+            : new Map<Area, [Area, Area, Point, number, number]>([
+                  [tl, [tr, tl, prev.root, -2, -3]],
+                  [tr, [tr, tl, prev.root, -2, -3]],
+                  [bl, [br, bl, curr.root, 1, 2]],
+                  [br, [br, bl, curr.root, 1, 2]],
+              ]);
     }
 
-    private prepareRestrain([top, right, bottom, left]: Area[][]): Map<Area[], Circle[]>{
-        const map = new Map();
-        if (this.align === Align.HORIZONTAL) {
-            const tm = top[0].root.getMiddle(top[1].root);
-            const bm = bottom[0].root.getMiddle(bottom[1].root);
-            const d0 = top[0].root.dist(top[1].root) / 2;
-            const d1 = top[0].root.dist(bm);
-            map.set(top, [
-                new Circle(bm.x, bm.y, d1),
-                new Circle(tm.x, tm.y, d0),
-            ]);
-            map.set(bottom, [
-                new Circle(tm.x, tm.y, d1),
-                new Circle(bm.x, bm.y, d0),
-            ]);
-        } else {
-            const tm = left[0].root.getMiddle(left[1].root);
-            const bm = right[0].root.getMiddle(right[1].root);
-            const d0 = left[0].root.dist(left[1].root) / 2;
-            const d1 = left[0].root.dist(bm);
-            map.set(left, [
-                new Circle(bm.x, bm.y, d1),
-                new Circle(tm.x, tm.y, d0),
-            ]);
-            map.set(right, [
-                new Circle(tm.x, tm.y, d1),
-                new Circle(bm.x, bm.y, d0),
-            ]);
-        }
-        return map;
+    private prepareDestinationMap(): Map<Area, [Point, Direction]> {
+        const { tl, tr, bl, br } = this.triggers;
+        return this.align === Align.HORIZONTAL
+            ? new Map<Area, [Point, Direction]>([
+                  [tl, [tr.root, Direction.PREV]],
+                  [tr, [tl.root, Direction.NEXT]],
+                  [bl, [br.root, Direction.PREV]],
+                  [br, [bl.root, Direction.NEXT]],
+              ])
+            : new Map<Area, [Point, Direction]>([
+                  [tl, [bl.root, Direction.PREV]],
+                  [tr, [br.root, Direction.PREV]],
+                  [bl, [tl.root, Direction.NEXT]],
+                  [br, [tr.root, Direction.NEXT]],
+              ]);
+    }
+
+    private prepareRestrainMap(): Map<Area, Circle[]> {
+        const { tl, tr, bl, br } = this.triggers;
+        const [[t0, t1], [b0, b1]] =
+            this.align === Align.HORIZONTAL
+                ? [
+                      [tr, tl],
+                      [br, bl],
+                  ]
+                : [
+                      [tl, bl],
+                      [tr, br],
+                  ];
+        const tm = t0.root.getMiddle(t1.root);
+        const bm = b0.root.getMiddle(b1.root);
+        const d0 = t0.root.dist(t1.root) / 2 - 1;
+        const d1 = t0.root.dist(bm) - 1;
+        const r0 = [new Circle(bm.x, bm.y, d1), new Circle(tm.x, tm.y, d0)];
+        const r1 = [new Circle(tm.x, tm.y, d1), new Circle(bm.x, bm.y, d0)];
+        return this.align === Align.HORIZONTAL
+            ? new Map<Area, Circle[]>([
+                  [tl, r0],
+                  [tr, r0],
+                  [bl, r1],
+                  [br, r1],
+              ])
+            : new Map<Area, Circle[]>([
+                  [tl, r0],
+                  [tr, r1],
+                  [bl, r0],
+                  [br, r1],
+              ]);
     }
 
     private restrain(mouse: Point): [number, number] {
-        let restrainCircles: Circle[] = [];
-        for (const [key, val] of this.rMap.entries()) {
-            if (key.includes(this._active)) {
-                restrainCircles = val;
-                break;
-            }
-        }
-        if (!restrainCircles.length) {
+        let restrainCircles: Circle[] | undefined = this.rMap.get(this._active);
+        if (!restrainCircles?.length) {
             return mouse.val;
         }
         return restrainCircles.reduce((memo: Point, circle) => {
             if (!circle.hit(memo)) {
                 const l = new Line([new Point(circle.x, circle.y), memo], '');
-                const cp = circle.cross(l).find(p => l.include(p));
+                const cp = circle.cross(l).find((p) => l.include(p));
                 if (cp) {
                     memo.val = cp.val;
                 }
@@ -163,16 +230,15 @@ class Book extends Area {
     }
 
     update(mouse: Point): void {
-        this.bl.points[1].val = this.restrain(mouse);
+        this.bl.points[1]!.val = this.restrain(mouse);
         this.ml.abc = this.bl.getMsAbc();
         const crossPoints = this.cross(this.ml);
-        this.pMap.back.updateClip(crossPoints, this._active);
-        this.pMap.front.mirror(this.pMap.back, this.ml);
+        this.pages.back.updateClip(crossPoints, this._active);
+        this.pages.front.mirror(this.pages.back, this.ml);
     }
 
-
     test(mouse: Point): Area | null {
-        const trigger = Object.values(this.tMap).reduce((memo: Area | null, rect) => {
+        const trigger = Object.values(this.triggers).reduce((memo: Area | null, rect) => {
             if (memo) {
                 return memo;
             }
@@ -187,56 +253,31 @@ class Book extends Area {
     set active(trigger: Area) {
         this._active = trigger;
 
-        this.bl.points[0].val = trigger.root.val;
-        Object.keys(this.gMap).some(direction => {
-            const group = this.gMap[direction];
-            if (group.includes(trigger)) {
-                const targetPage = direction === Direction.PREV ? 'prev' : 'curr';
-                this.pMap.back.clip.points[2].val = group[1].root.val;
-                this.pMap.back.clip.points[3].val = group[0].root.val;
-                this.pMap.back.origin = this.pMap[targetPage].root.clone();
-                this.pMap.back.direction = direction as Direction;
-                this.pMap.front.direction = direction as Direction;
-                return true;
-            }
-            return false;
-        });
+        this.bl.points[0]!.val = trigger.root.val;
+        const [t1, t2, root, frontOffset, backOffset]: [
+            Area,
+            Area,
+            Point,
+            number,
+            number
+        ] = this.aMap.get(trigger)!;
+        this.pages.back.clip.points[2]!.copyFrom(t2.root);
+        this.pages.back.clip.points[3]!.copyFrom(t1.root);
+        this.pages.back.origin = root.clone();
+        this.pages.front.origin = root.clone();
+        this.pages.front.offset = frontOffset;
+        this.pages.back.offset = backOffset;
     }
 
-    findDestination(start: Point, end: Point): [Point, Direction] {
-        const [tl, tr, br, bl] = this.points;
-        const map = new Map<Point, Point[]>([
-            [tl, [tl, tr]],
-            [tr, [tl, tr]],
-            [bl, [bl, br]],
-            [br, [bl, br]],
-        ]);
-        const startRoot = start.closest(Array.from(map.keys()));
-        const pair = map.get(startRoot) || [];
-        let endRoot = end.closest(pair);
-        const offset = pair.indexOf(startRoot) - pair.indexOf(endRoot)
-
-        // drag
-        let direction = Direction.STAY;
-        switch (offset) {
-            case 1:
-                direction = Direction.NEXT;
-                break;
-            case -1:
-                direction = Direction.PREV;
-                break;
-            case 0:
-                direction = Direction.STAY;
-                break;
-            default:
-                break;
+    findDestination(trigger: Area, start: Point, end: Point): [Point, Direction] {
+        if (trigger.hit(end)) {
+            // click
+            if (start.dist(end) < 10) {
+                return this.dMap.get(trigger)!;
+            }
+            return [trigger.root, Direction.STAY];
         }
-        // click
-        if (start.dist(end) < 10) {
-            direction = !!pair.indexOf(startRoot) ? Direction.NEXT : Direction.PREV;
-            endRoot = pair.filter(p => p !== startRoot)[0];
-        }
-        return [endRoot, direction];
+        return this.dMap.get(trigger)!;
     }
 }
 

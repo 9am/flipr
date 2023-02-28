@@ -1,8 +1,8 @@
 import Point from './core/point';
 import Mouse from './core/mouse';
+import Area from './core/area';
 import List from './core/list';
-import Book, { Align } from './core/book';
-import { Direction } from './core/page';
+import Book from './core/book';
 import CanvasPainter from './painter/canvas';
 import { fromEvent } from 'rxjs';
 import {
@@ -17,53 +17,44 @@ import {
     take,
     merge,
     withLatestFrom,
+    throttleTime,
 } from 'rxjs/operators';
-
-interface Options {
-    w: number,
-    h: number,
-    ph: number,
-    pv: number,
-    tSize: number,
-    align: Align,
-    debug: boolean,
-}
-
-
-
-interface XY {
-  readonly x: number;
-  readonly y: number;
-}
-enum DragState {
-  START = 'start',
-  MIDDLE = 'middle',
-  END = 'end',
-}
-interface Drag {
-  readonly start: XY;
-  readonly current: XY;
-  readonly state: DragState;
-}
-
-
+import {
+    FlipbookOptions,
+    DragState,
+    Drag,
+    HoverState,
+    Hover,
+    Align,
+    Direction,
+} from './type';
 
 class Flipr {
     private painter: CanvasPainter;
     root: Window;
-    options: Options;
+    options: FlipbookOptions;
     mouse: Mouse;
     book: Book;
     list: List;
 
-    constructor(options: Options) {
+    constructor(options: FlipbookOptions) {
         this.options = options;
         this.root = window;
 
-        const { w, h, ph = 60, pv = 100, tSize = 100 } = this.options;
+        const {
+            w,
+            h,
+            ph = 60,
+            pv = 100,
+            tSize = 100,
+            align = Align.HORIZONTAL,
+        } = this.options;
         this.painter = new CanvasPainter(w, h);
-        const content = document.getElementById('content') || document.createElement('div');
-        this.list = new List(Array.from(content.children).map(node => node as CanvasImageSource));
+        const content =
+            document.getElementById('content') || document.createElement('div');
+        this.list = new List(
+            Array.from(content.children).map((node) => node as CanvasImageSource)
+        );
 
         this.mouse = new Mouse();
         this.book = new Book(
@@ -74,8 +65,7 @@ class Flipr {
                 new Point(0 + ph, h - pv),
             ],
             tSize,
-            Align.HORIZONTAL,
-            // Align.VERTICAL,
+            align
         );
 
         // init
@@ -87,160 +77,171 @@ class Flipr {
         this.painter.clear();
 
         if (this.options.debug) {
-            Object.values(this.book.tMap).forEach(area => this.painter.draw(area));
-            Array.from(this.book.rMap.values()).forEach(circles => {
-                circles.forEach(c => this.painter.draw(c));
+            Object.values(this.book.triggers).forEach((area) => this.painter.draw(area));
+            Array.from(this.book.rMap.values()).forEach((circles) => {
+                circles.forEach((c) => this.painter.draw(c));
             });
-            Object.values(this.book.pMap).forEach(page => {
+            Object.values(this.book.pages).forEach((page) => {
                 this.painter.draw(page.clip);
             });
         } else {
-            // this.painter.draw(this.book.pMap.prev, this.getContent(curr, this.book.pMap.prev.offset));
-            // this.painter.draw(this.book.pMap.curr, this.getContent(curr, this.book.pMap.curr.offset));
-            // this.painter.draw(this.book.pMap.back, this.getContent(curr, this.book.pMap.back.offset));
-            // this.painter.draw(this.book.pMap.front, this.getContent(curr, this.book.pMap.front.offset));
-            this.painter.draw(this.book.pMap.prev, this.list.getItem(this.list.index - 1));
-            this.painter.draw(this.book.pMap.curr, this.list.getItem(this.list.index));
-            this.painter.draw(this.book.pMap.back, this.list.getItem(this.list.index + (this.book.pMap.back.direction === Direction.PREV ? -3 : 2)));
-            this.painter.draw(this.book.pMap.front, this.list.getItem(this.list.index + (this.book.pMap.front.direction === Direction.PREV ? -2 : 1)));
+            this.painter.draw(
+                this.book.pages.prev,
+                this.list.getItemByOffset(this.book.pages.prev.offset)
+            );
+            this.painter.draw(
+                this.book.pages.curr,
+                this.list.getItemByOffset(this.book.pages.curr.offset)
+            );
+            this.painter.draw(
+                this.book.pages.back,
+                this.list.getItemByOffset(this.book.pages.back.offset)
+            );
+            this.painter.draw(
+                this.book.pages.front,
+                this.list.getItemByOffset(this.book.pages.front.offset)
+            );
         }
     }
 
-    // getContent(curr: number, offset: number): CanvasImageSource {
-    //     const o = offset > 0 ? offset - 1 : offset;
-    //     return this.content[curr + o];
-    // }
-
     // listener
     initListener(): void {
-        const toXY = (event: MouseEvent): XY => {
-            // return { x: event.offsetX, y: event.offsetY };
-            const { x, y } = this.dom.getClientRects()[0];
-            return { x: event.clientX - x, y: event.clientY - y };
-        }
+        const toXY = (event: MouseEvent): Point => {
+            const { x, y } = this.dom.getBoundingClientRect();
+            return new Point(event.clientX - x, event.clientY - y);
+        };
         const mouseDown = fromEvent<MouseEvent>(this.root, 'mousedown').pipe(
             map(toXY),
-            filter(xy => !!this.book.test(new Point(xy.x, xy.y)))
+            map((xy) => ({ enter: this.book.test(xy), xy })),
+            filter(({ enter }) => !!enter)
         );
         const mouseMove = fromEvent<MouseEvent>(this.root, 'mousemove').pipe(
-            map(toXY),
+            throttleTime(20),
+            map(toXY)
         );
-        const mouseUp = fromEvent<MouseEvent>(this.root, 'mouseup').pipe(
-            map(toXY),
-        );
+        const mouseUp = fromEvent<MouseEvent>(this.root, 'mouseup').pipe(map(toXY));
 
         // drag
         const start = mouseDown.pipe(
-            map(xy => ({start: xy, current: xy, state: DragState.START}))
+            map(({ xy, enter }) => ({
+                enter,
+                current: xy,
+                state: DragState.START,
+            }))
         );
-        const middle = mouseDown.pipe(switchMap(
-            () => mouseMove.pipe(takeUntil(mouseUp)),
-            (start, current) => ({start, current, state: DragState.MIDDLE})
-        ));
-        const end = mouseDown.pipe(switchMap(
-            () => mouseUp.pipe(take(1)),
-            (start, current) => ({start, current, state: DragState.END})
-        ));
+        const middle = start.pipe(
+            switchMap(
+                () => mouseMove.pipe(takeUntil(mouseUp)),
+                (start, current) => ({ ...start, current, state: DragState.MIDDLE })
+            )
+        );
+        const end = start.pipe(
+            switchMap(
+                () => mouseUp.pipe(take(1)),
+                (start, current) => ({
+                    ...start,
+                    start: start.current,
+                    current,
+                    state: DragState.END,
+                })
+            )
+        );
 
         const drag = start.pipe(
             merge(middle, end),
-            startWith({start: {x: 0, y: 0}, current: {x: 0, y: 0}, state: DragState.END}),
-        )
+            startWith({
+                start: new Point(),
+                current: new Point(),
+                state: DragState.END,
+            })
+        );
 
-        const moveStopByDrag = mouseMove
-            .pipe(
-                withLatestFrom(drag),
-                map(([m, d]): [XY, Drag] => [
-                    d.state === DragState.START ? {x: Number.MAX_SAFE_INTEGER, y: 0} : m,
-                    d,
-                ]),
-                filter(([, d]) => d.state !== DragState.MIDDLE),
-                map(([m]) => m),
-            );
-        const enterLeave = moveStopByDrag
-            .pipe(
-                map(xy => this.book.test(new Point(xy.x, xy.y))),
-                distinctUntilChanged(),
-                pairwise(),
-                map(([lastEnter, enter]: any[]) => {
-                    return {
-                        enter: enter || lastEnter,
-                        current: { x: 0, y: 0 },
-                        state: enter ? DragState.START : DragState.END,
-                    };
-                }),
-            )
-        const move = moveStopByDrag
-            .pipe(
-                filter(xy => !!this.book.test(new Point(xy.x, xy.y))),
-                map(xy => ({
-                    enter: null,
-                    current: xy,
-                    state: DragState.MIDDLE,
-                })),
-            );
+        // trigger
+        const moveUtilDragEnd = mouseMove.pipe(
+            withLatestFrom(drag),
+            filter(([, d]: [Point, Drag]) => d.state === DragState.END),
+            map(([m]) => m)
+        );
+        const enterLeave = moveUtilDragEnd.pipe(
+            map((xy) => this.book.test(xy)),
+            distinctUntilChanged(),
+            pairwise(),
+            map(([lastEnter, enter]: any[]) => {
+                return {
+                    enter: enter || lastEnter,
+                    current: new Point(),
+                    state: enter ? HoverState.ENTER : HoverState.LEAVE,
+                };
+            })
+        );
+        const move = moveUtilDragEnd.pipe(
+            map((xy) => [xy, this.book.test(xy)]),
+            filter(([xy, enter]) => !!enter),
+            map(([xy, enter]) => ({
+                enter,
+                current: xy,
+                state: DragState.MIDDLE,
+            }))
+        );
 
         const trigger = enterLeave.pipe(merge(move));
-
-
 
         // enter and leave
         trigger.subscribe((action: any) => {
             // console.log('trigger', action);
             switch (action.state) {
-                case DragState.START:
-                    this.mouse.val = [action.enter.root.x, action.enter.root.y];
-                    this.mouse.moveTo(action.current.x, action.current.y);
+                case HoverState.ENTER:
+                    this.mouse.copyFrom(action.enter.root);
                     break;
-                case DragState.MIDDLE:
-                    this.mouse.moveTo(action.current.x, action.current.y);
+                case HoverState.MIDDLE:
+                    if (this.mouse.prevent) {
+                        break;
+                    }
+                    this.mouse.moveTo(action.current);
+                    // this.mouse.copyFrom(action.current);
                     break;
-                case DragState.END:
-                    this.mouse.moveTo(action.enter.root.x, action.enter.root.y);
+                case HoverState.LEAVE:
+                    if (this.mouse.prevent) {
+                        break;
+                    }
+                    this.mouse.moveTo(action.enter.root);
                     break;
-                default: break;
+                default:
+                    break;
             }
         });
         // drag
-        drag.pipe(
-            skip(1),
-        ).subscribe((action: Drag) => {
+        drag.pipe(skip(1)).subscribe((action: any) => {
             // console.log('drag', action);
             switch (action.state) {
                 case DragState.START:
-                    // this.mouse.val = [action.current.x, action.current.y];
-                    this.mouse.moveTo(action.current.x, action.current.y);
+                    this.mouse.copyFrom(action.enter.root);
+                    this.mouse.moveTo(action.current, true);
                     break;
                 case DragState.MIDDLE:
-                    this.mouse.val = [action.current.x, action.current.y];
+                    this.mouse.moveTo(action.current);
                     break;
                 case DragState.END:
-                    const { x: startX, y: startY } = action.start;
-                    const { x: endX, y: endY } = action.current;
                     const [destination, direction] = this.book.findDestination(
-                        new Point(startX, startY),
-                        new Point(endX, endY),
+                        action.enter,
+                        action.start,
+                        action.current
                     );
-                    this.mouse.moveTo(destination.x, destination.y);
-                    console.log(destination, direction);
-                    // TODO go previous or next
-                    // this.list.flush();
-                    // this.list.push(parseInt(direction, 10));
-                    // setTimeout(() => this.list.flush(), 1000);
+                    this.mouse.moveTo(destination, true).then((res) => {
+                        this.mouse.copyFrom(action.enter.root);
+                        this.list.index = this.list.index + direction * 2;
+                        console.log(destination, direction, this.list.index);
+                    });
                     break;
-                default: break;
+                default:
+                    break;
             }
         });
 
-        this.mouse.observable.pipe(
-            merge(this.list.observable),
-        ).subscribe(
-            () => {
-                this.book.update(this.mouse);
-                this.render();
-            }
-        );
-
+        this.mouse.observable.pipe(merge(this.list.observable)).subscribe(() => {
+            this.book.update(this.mouse);
+            this.render();
+        });
     }
 
     log(): void {

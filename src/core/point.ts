@@ -4,7 +4,6 @@ class Point {
     y: number;
 
     constructor(x = 0, y = 0, id = '') {
-        // super();
         this.id = id;
         this.x = x;
         this.y = y;
@@ -14,11 +13,14 @@ class Point {
         const [x, y] = value;
         this.x = x;
         this.y = y;
-
     }
 
     get val(): [x: number, y: number] {
         return [this.x, this.y];
+    }
+
+    copyFrom(point: Point) {
+        this.val = [point.x, point.y];
     }
 
     clone(): Point {
@@ -26,8 +28,7 @@ class Point {
     }
 
     isEqual(point: Point): boolean {
-        return point.x === this.x
-            && point.y === this.y;
+        return point.x === this.x && point.y === this.y;
     }
 
     dist(p: Point): number {
@@ -38,10 +39,7 @@ class Point {
     }
 
     getMiddle(p: Point): Point {
-        return new Point(
-            (p.x + this.x) / 2,
-            (p.y + this.y) / 2,
-        );
+        return new Point((p.x + this.x) / 2, (p.y + this.y) / 2);
     }
 
     isSolid(): boolean {
@@ -49,18 +47,20 @@ class Point {
     }
 
     closest(list: Point[]): Point {
-        const [, result] = list.reduce((memo, target) => {
-            const [minDist] = memo;
-            const dist = this.dist(target);
-            return dist < minDist ? [dist, target] : memo;
-        }, [Number.MAX_SAFE_INTEGER, new Point()]);
+        const [, result] = list.reduce(
+            (memo, target) => {
+                const [minDist] = memo;
+                const dist = this.dist(target);
+                return dist < minDist ? [dist, target] : memo;
+            },
+            [Number.MAX_SAFE_INTEGER, new Point()]
+        );
         return result;
     }
 
     log(): void {
         console.info(`x: ${this.x}, y: ${this.y}`);
     }
-
 }
 
 export default Point;

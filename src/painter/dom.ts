@@ -1,4 +1,3 @@
-class DomPainter {
-}
+class DomPainter {}
 
 export default DomPainter;

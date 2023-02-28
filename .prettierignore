@@ -4,4 +4,8 @@
 *.tgz
 *.log
 *.swp
+*.html
+*.json
+*.md
+.*ignore
 .DS_Store
