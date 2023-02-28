@@ -7,45 +7,40 @@ export enum Align {
     VERTICAL = 'vertical',
 }
 
-export enum Direction {
-    '+' = '+',
-    '-' = '-',
-}
-
 class Page extends Area {
-    direction: Direction;
     align: Align;
     clip0: Area;
     clip1: Area;
     bl: Line;
     ml: Line;
+    previous: Area[] = [];
+    next: Area[] = [];
+    tMap: Record<string, Area>;
     tArea: Area[] = [];
 
     constructor(
         points: [tl: Point, tr: Point, br: Point, bl: Point],
-        direction: Direction,
         tSize = 100,
         align: Align = Align.HORIZONTAL,
     ) {
         super(points, '');
-        this.direction = direction;
         this.align = align;
         this.bl = new Line([
-            new Point(0, 0),
-            new Point(0, 0),
+            new Point(),
+            new Point(),
         ], '');
         this.ml = new Line([0, 0, 0], '');
         this.clip0 = new Area([
-            new Point(0, 0),
-            new Point(0, 0),
-            new Point(0, 0),
-            new Point(0, 0),
+            new Point(),
+            new Point(),
+            new Point(),
+            new Point(),
         ], 'clip0');
         this.clip1 = new Area([
-            new Point(0, 0),
-            new Point(0, 0),
-            new Point(0, 0),
-            new Point(0, 0),
+            new Point(),
+            new Point(),
+            new Point(),
+            new Point(),
         ], 'clip1');
 
         const [tl, tr, br, bl] = points;
@@ -76,19 +71,14 @@ class Page extends Area {
             ], 'bl'),
         };
 
-        switch (this.align) {
-            case Align.HORIZONTAL:
-                this.tArea = this.direction === Direction['-']
-                    ? [tMap.tl, tMap.bl]
-                    : [tMap.tr, tMap.br];
-                break;
-            case Align.VERTICAL:
-                this.tArea = this.direction === Direction['-']
-                    ? [tMap.tr, tMap.tl]
-                    : [tMap.br, tMap.bl];
-                break;
-            default: break;
-        }
+        this.previous = this.align === Align.HORIZONTAL
+            ? [tMap.tl, tMap.bl]
+            : [tMap.tr, tMap.tl];
+        this.next = this.align === Align.HORIZONTAL
+            ? [tMap.tr, tMap.br]
+            : [tMap.br, tMap.bl];
+        this.tArea = [...this.previous, ...this.next];
+        this.tMap = tMap;
     }
 
     update(mouse: Point): void {
@@ -111,7 +101,7 @@ class Page extends Area {
         });
     }
 
-    test(point: Point): boolean {
+    test(point: Point): Area | null {
         const trigger = this.tArea.reduce((memo: Area | null, rect) => {
             if (memo) {
                 return memo;
@@ -121,13 +111,16 @@ class Page extends Area {
         if (trigger) {
             this.setRoot(trigger);
         }
-        return Boolean(trigger);
+        return trigger;
     }
 
     setRoot(trigger: Area): void {
         this.bl.points[0].val = trigger.root.val;
-        this.clip0.points[2].val = this.tArea[1].root.val;
-        this.clip0.points[3].val = this.tArea[0].root.val;
+        const group = this.previous.includes(trigger)
+            ? this.previous
+            : this.next;
+        this.clip0.points[2].val = group[1].root.val;
+        this.clip0.points[3].val = group[0].root.val;
     }
 
     limitMouse(): void {

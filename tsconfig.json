@@ -3,6 +3,7 @@
         "declaration": true,
         "declarationDir": "./dist",
 		"module": "es6",
+		"moduleResolution": "node",
         "outDir": "./dist",
 		"target": "es5",
 		"strict": true
