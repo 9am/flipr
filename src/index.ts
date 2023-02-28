@@ -71,6 +71,7 @@ class Flipr {
             ],
             tSize,
             Align.HORIZONTAL,
+            // Align.VERTICAL,
         );
 
         // init
@@ -81,14 +82,12 @@ class Flipr {
     render(): void {
         this.painter.clear();
         this.painter.draw(this.page);
-        this.page.tArea.forEach(area => this.painter.draw(area));
+        Object.values(this.page.tMap).forEach(area => this.painter.draw(area));
         this.painter.draw(this.page.clip0);
         this.painter.draw(this.page.clip1);
-
-        // for (const circles of this.page.rMap.values()) {
-        //     circles.forEach(c => this.painter.draw(c));
-        // }
-        this.page.c.forEach(c => this.painter.draw(c));
+        Array.from(this.page.rMap.values()).forEach(circles => {
+            circles.forEach(c => this.painter.draw(c));
+        });
     }
 
     // listener

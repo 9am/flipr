@@ -16,13 +16,12 @@ class Page extends Area {
     clip1: Area;
     bl: Line;
     ml: Line;
-
-    // tMap: Record<string, Area>;
-    cMap: Map<Area[], Area[]>;
-    rMap: Map<Area[], Circle[]>;
-    tArea: Area[] = [];
-
-    c: Circle[] = [];
+    // map of trigger area
+    tMap: Record<string, Area> = {};
+    // map of trigger area for clipping calculation
+    cMap: Map<Area[], Area[]> = new Map();
+    // map of restriction circle
+    rMap: Map<Area[], Circle[]> = new Map();
 
     constructor(
         points: [tl: Point, tr: Point, br: Point, bl: Point],
@@ -49,8 +48,21 @@ class Page extends Area {
             new Point(),
         ], 'clip1');
 
+        this.tMap = this.prepareTriggerMap(points, tSize);
+        this._active = this.tMap.tl;
+        const [top, right, bottom, left] = [
+            [this.tMap.tr, this.tMap.tl],
+            [this.tMap.tr, this.tMap.br],
+            [this.tMap.br, this.tMap.bl],
+            [this.tMap.tl, this.tMap.bl],
+        ];
+        this.cMap = this.prepareClipMap([top, right, bottom, left]);
+        this.rMap = this.prepareRestrainMap([top, right, bottom, left]);
+    }
+
+    prepareTriggerMap(points: Point[], tSize: number): Record<string, Area> {
         const [tl, tr, br, bl] = points;
-        const tMap = {
+        return {
             tl: new Area([
                 tl,
                 new Point(tl.x + tSize, tl.y),
@@ -76,43 +88,50 @@ class Page extends Area {
                 new Point(bl.x, bl.y - tSize),
             ], 'bl'),
         };
-        this.tArea = Object.values(tMap);
+    }
 
-        const [top, right, bottom, left] = [
-            [tMap.tr, tMap.tl],
-            [tMap.tr, tMap.br],
-            [tMap.br, tMap.bl],
-            [tMap.tl, tMap.bl],
-        ];
-
-        this.cMap = new Map();
+    prepareClipMap([top, right, bottom, left]: Area[][]): Map<Area[], Area[]> {
+        const map = new Map();
         if (this.align === Align.HORIZONTAL) {
-            this.cMap.set(left, left);
-            this.cMap.set(right, right);
+            map.set(left, left);
+            map.set(right, right);
         } else {
-            this.cMap.set(top, top);
-            this.cMap.set(bottom, bottom);
+            map.set(top, top);
+            map.set(bottom, bottom);
         }
+        return map;
+    }
 
-
-        this.rMap = new Map();
+    prepareRestrainMap([top, right, bottom, left]: Area[][]): Map<Area[], Circle[]>{
+        const map = new Map();
         if (this.align === Align.HORIZONTAL) {
             const tm = top[0].root.getMiddle(top[1].root);
             const bm = bottom[0].root.getMiddle(bottom[1].root);
             const d0 = top[0].root.dist(top[1].root) / 2;
             const d1 = top[0].root.dist(bm);
-            this.rMap.set(top, [
+            map.set(top, [
                 new Circle(bm.x, bm.y, d1),
                 new Circle(tm.x, tm.y, d0),
             ]);
-            this.rMap.set(bottom, [
+            map.set(bottom, [
                 new Circle(tm.x, tm.y, d1),
                 new Circle(bm.x, bm.y, d0),
             ]);
         } else {
+            const tm = left[0].root.getMiddle(left[1].root);
+            const bm = right[0].root.getMiddle(right[1].root);
+            const d0 = left[0].root.dist(left[1].root) / 2;
+            const d1 = left[0].root.dist(bm);
+            map.set(left, [
+                new Circle(bm.x, bm.y, d1),
+                new Circle(tm.x, tm.y, d0),
+            ]);
+            map.set(right, [
+                new Circle(tm.x, tm.y, d1),
+                new Circle(bm.x, bm.y, d0),
+            ]);
         }
-
-        this._active = tMap.tl;
+        return map;
     }
 
     update(mouse: Point): void {
@@ -121,12 +140,12 @@ class Page extends Area {
         const [p0, p1, p2, p3] = this.cross(this.ml);
         switch (this.align) {
             case Align.HORIZONTAL:
-                this.clip0.points[0].val = p0.val;
-                this.clip0.points[1].val = p2.val;
+                this.clip0.points[0].val = p0.isSolid() ? p0.val : this._active.root.val;
+                this.clip0.points[1].val = p2.isSolid() ? p2.val : this._active.root.val;
                 break;
             case Align.VERTICAL:
-                this.clip0.points[0].val = p1.val;
-                this.clip0.points[1].val = p3.val;
+                this.clip0.points[0].val = p1.isSolid() ? p1.val : this._active.root.val;
+                this.clip0.points[1].val = p3.isSolid() ? p3.val : this._active.root.val;
                 break;
 
         }
@@ -136,7 +155,7 @@ class Page extends Area {
     }
 
     test(point: Point): Area | null {
-        const trigger = this.tArea.reduce((memo: Area | null, rect) => {
+        const trigger = Object.values(this.tMap).reduce((memo: Area | null, rect) => {
             if (memo) {
                 return memo;
             }
@@ -166,7 +185,6 @@ class Page extends Area {
         for (const [key, val] of this.rMap.entries()) {
             if (key.includes(this._active)) {
                 restrainCircles = val;
-                this.c = val;
                 break;
             }
         }
@@ -177,7 +195,6 @@ class Page extends Area {
             if (!circle.hit(memo)) {
                 const l = new Line([new Point(circle.x, circle.y), memo], '');
                 const cp = circle.cross(l).find(p => l.include(p));
-                console.log('xxx', cp);
                 if (cp) {
                     memo.val = cp.val;
                 }

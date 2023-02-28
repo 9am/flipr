@@ -76,7 +76,7 @@ class Line {
         const [o, p, q] = line.abc;
         const [x, y, z] = [m * q - n * p, n * o - l * q, l * p - m * o];
         if (z === 0) {
-            return new Point(0, 0);
+            return new Point(Infinity);
         }
         return new Point(x / z, y / z);
     }

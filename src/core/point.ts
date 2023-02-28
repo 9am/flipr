@@ -46,6 +46,10 @@ class Point {
         );
     }
 
+    isSolid(): boolean {
+        return this.x !== Infinity && this.y !== Infinity;
+    }
+
     log(): void {
         console.info(`x: ${this.x}, y: ${this.y}`);
     }
