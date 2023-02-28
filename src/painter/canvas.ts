@@ -1,5 +1,6 @@
 import Point from '../core/point';
 import Line from '../core/line';
+import Circle from '../core/circle';
 import Area from '../core/area';
 
 class CanvasPainter {
@@ -65,19 +66,31 @@ class CanvasPainter {
         this._ctx.fillText(text, x, y);
     }
 
-    draw(entity: Point | Line | Area): void {
-        if (entity instanceof Point) {
-            const point = entity as Point;
-            this.drawCircle(point.x, point.y);
-            this.drawText(point.id, point.x + 10, point.y - 10);
-        } else if (entity instanceof Line) {
-            const line = entity as Line;
-            this.drawLine(line.points);
-            line.points.forEach(point => this.draw(point));
-        } else if (entity instanceof Area) {
-            const area = entity as Area;
-            this.drawPath(area.points);
-            area.points.forEach(point => this.draw(point));
+    draw(entity: Point | Circle | Line | Area): void {
+        switch(entity.constructor.name) {
+            case 'Point':
+                const point = entity as Point;
+                this.drawCircle(point.x, point.y);
+                this.drawText(point.id, point.x + 10, point.y - 10);
+                break;
+            case 'Circle':
+                const circle = entity as Circle;
+                this.drawCircle(circle.x, circle.y, circle.r);
+                this.drawText(circle.id, circle.x + 10, circle.y - 10);
+                break;
+            case 'Line':
+                const line = entity as Line;
+                this.drawLine(line.points);
+                line.points.forEach(point => this.draw(point));
+                break;
+            case 'Area':
+            case 'Page':
+                const area = entity as Area;
+                this.drawPath(area.points);
+                area.points.forEach(point => this.draw(point));
+                break;
+            default:
+                break;
         }
     }
 

@@ -51,6 +51,11 @@ class Line {
         this._abc = val;
     }
 
+    get kb(): [number, number] {
+        const [a, b, c] = this.abc;
+        return [-a / b, -c / b];
+    }
+
     getMsAbc(): abc {
         const [p0, p1] = this.points;
         const [a, b] = this.abc;
@@ -85,6 +90,22 @@ class Line {
         const ry = b / a * (rx - x) + y;
         return new Point(rx, ry);
     }
+
+    project(point: Point): Point {
+        const [x, y] = point.val;
+        const [a, b, c] = this.abc;
+        const [k, bb] = [-a / b, -c / b];
+        const rx = (k * (y - bb) + x) / (k * k + 1);
+        const ry = k * x + bb;
+        return new Point(rx, ry);
+    }
+
+    include(p: Point): boolean {
+        const sum = p.dist(this.points[0]) + p.dist(this.points[1]);
+        const len = this.points[0].dist(this.points[1]);
+        return Math.abs(sum - len) < 1e-10;
+    }
+
 }
 
 export default Line;

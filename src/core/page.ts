@@ -1,4 +1,5 @@
 import Area from './area';
+import Circle from './circle';
 import Line from './line';
 import Point from './point';
 
@@ -8,15 +9,20 @@ export enum Align {
 }
 
 class Page extends Area {
+    private _active: Area;
+
     align: Align;
     clip0: Area;
     clip1: Area;
     bl: Line;
     ml: Line;
-    previous: Area[] = [];
-    next: Area[] = [];
-    tMap: Record<string, Area>;
+
+    // tMap: Record<string, Area>;
+    cMap: Map<Area[], Area[]>;
+    rMap: Map<Area[], Circle[]>;
     tArea: Area[] = [];
+
+    c: Circle[] = [];
 
     constructor(
         points: [tl: Point, tr: Point, br: Point, bl: Point],
@@ -70,19 +76,47 @@ class Page extends Area {
                 new Point(bl.x, bl.y - tSize),
             ], 'bl'),
         };
+        this.tArea = Object.values(tMap);
 
-        this.previous = this.align === Align.HORIZONTAL
-            ? [tMap.tl, tMap.bl]
-            : [tMap.tr, tMap.tl];
-        this.next = this.align === Align.HORIZONTAL
-            ? [tMap.tr, tMap.br]
-            : [tMap.br, tMap.bl];
-        this.tArea = [...this.previous, ...this.next];
-        this.tMap = tMap;
+        const [top, right, bottom, left] = [
+            [tMap.tr, tMap.tl],
+            [tMap.tr, tMap.br],
+            [tMap.br, tMap.bl],
+            [tMap.tl, tMap.bl],
+        ];
+
+        this.cMap = new Map();
+        if (this.align === Align.HORIZONTAL) {
+            this.cMap.set(left, left);
+            this.cMap.set(right, right);
+        } else {
+            this.cMap.set(top, top);
+            this.cMap.set(bottom, bottom);
+        }
+
+
+        this.rMap = new Map();
+        if (this.align === Align.HORIZONTAL) {
+            const tm = top[0].root.getMiddle(top[1].root);
+            const bm = bottom[0].root.getMiddle(bottom[1].root);
+            const d0 = top[0].root.dist(top[1].root) / 2;
+            const d1 = top[0].root.dist(bm);
+            this.rMap.set(top, [
+                new Circle(bm.x, bm.y, d1),
+                new Circle(tm.x, tm.y, d0),
+            ]);
+            this.rMap.set(bottom, [
+                new Circle(tm.x, tm.y, d1),
+                new Circle(bm.x, bm.y, d0),
+            ]);
+        } else {
+        }
+
+        this._active = tMap.tl;
     }
 
     update(mouse: Point): void {
-        this.bl.points[1].val = mouse.val;
+        this.bl.points[1].val = this.restrain(mouse);
         this.ml.abc = this.bl.getMsAbc();
         const [p0, p1, p2, p3] = this.cross(this.ml);
         switch (this.align) {
@@ -109,22 +143,47 @@ class Page extends Area {
             return rect.hit(point) ? rect : memo;
         }, null);
         if (trigger) {
-            this.setRoot(trigger);
+            this.active = trigger;
         }
         return trigger;
     }
 
-    setRoot(trigger: Area): void {
+    set active(trigger: Area) {
+        this._active = trigger;
+
         this.bl.points[0].val = trigger.root.val;
-        const group = this.previous.includes(trigger)
-            ? this.previous
-            : this.next;
-        this.clip0.points[2].val = group[1].root.val;
-        this.clip0.points[3].val = group[0].root.val;
+        for (const [key, val] of this.cMap.entries()) {
+            if (key.includes(trigger)) {
+                this.clip0.points[2].val = val[1].root.val;
+                this.clip0.points[3].val = val[0].root.val;
+                break;
+            }
+        }
     }
 
-    limitMouse(): void {
-        console.log(1);
+    restrain(mouse: Point): [number, number] {
+        let restrainCircles: Circle[] = [];
+        for (const [key, val] of this.rMap.entries()) {
+            if (key.includes(this._active)) {
+                restrainCircles = val;
+                this.c = val;
+                break;
+            }
+        }
+        if (!restrainCircles.length) {
+            return mouse.val;
+        }
+        return restrainCircles.reduce((memo: Point, circle) => {
+            if (!circle.hit(memo)) {
+                const l = new Line([new Point(circle.x, circle.y), memo], '');
+                const cp = circle.cross(l).find(p => l.include(p));
+                console.log('xxx', cp);
+                if (cp) {
+                    memo.val = cp.val;
+                }
+            }
+            return memo;
+        }, mouse.clone()).val;
     }
 }
 

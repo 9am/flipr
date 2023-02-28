@@ -32,11 +32,18 @@ class Point {
             && point.y === this.y;
     }
 
-    dist(point: Point): number {
+    dist(p: Point): number {
         const [x0, y0] = this.val;
-        const [x1, y1] = point.val;
+        const [x1, y1] = p.val;
         const [px, py] = [Math.abs(x1 - x0), Math.abs(y1 - y0)];
         return Math.sqrt(Math.pow(px, 2) + Math.pow(py, 2));
+    }
+
+    getMiddle(p: Point): Point {
+        return new Point(
+            (p.x + this.x) / 2,
+            (p.y + this.y) / 2,
+        );
     }
 
     log(): void {

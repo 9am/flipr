@@ -84,6 +84,11 @@ class Flipr {
         this.page.tArea.forEach(area => this.painter.draw(area));
         this.painter.draw(this.page.clip0);
         this.painter.draw(this.page.clip1);
+
+        // for (const circles of this.page.rMap.values()) {
+        //     circles.forEach(c => this.painter.draw(c));
+        // }
+        this.page.c.forEach(c => this.painter.draw(c));
     }
 
     // listener
