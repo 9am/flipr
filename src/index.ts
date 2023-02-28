@@ -3,7 +3,9 @@ import Mouse from './core/mouse';
 import Area from './core/area';
 import List from './core/list';
 import Book from './core/book';
+import Painter from './painter/base';
 import CanvasPainter from './painter/canvas';
+import DOMPainter from './painter/dom';
 import { fromEvent } from 'rxjs';
 import {
     skip,
@@ -30,7 +32,7 @@ import {
 } from './type';
 
 class Flipr {
-    private painter: CanvasPainter;
+    private painter: Painter;
     root: Window;
     options: FlipbookOptions;
     mouse: Mouse;
@@ -48,13 +50,11 @@ class Flipr {
             pv = 100,
             tSize = 100,
             align = Align.HORIZONTAL,
+            content = document.createElement('div'),
         } = this.options;
-        this.painter = new CanvasPainter(w, h);
-        const content =
-            document.getElementById('content') || document.createElement('div');
-        this.list = new List(
-            Array.from(content.children).map((node) => node as CanvasImageSource)
-        );
+        // this.painter = new CanvasPainter(w, h, ph, pv);
+        this.painter = new DOMPainter(w, h, ph, pv);
+        this.list = new List(Array.from(content.children));
 
         this.mouse = new Mouse();
         this.book = new Book(
@@ -188,23 +188,19 @@ class Flipr {
 
         // enter and leave
         trigger.subscribe((action: any) => {
+            if (this.mouse.prevent) {
+                return;
+            }
             // console.log('trigger', action);
             switch (action.state) {
                 case HoverState.ENTER:
                     this.mouse.copyFrom(action.enter.root);
                     break;
                 case HoverState.MIDDLE:
-                    if (this.mouse.prevent) {
-                        break;
-                    }
                     this.mouse.moveTo(action.current);
-                    // this.mouse.copyFrom(action.current);
                     break;
                 case HoverState.LEAVE:
-                    if (this.mouse.prevent) {
-                        break;
-                    }
-                    this.mouse.moveTo(action.enter.root);
+                    this.mouse.moveTo(this.book.active.root);
                     break;
                 default:
                     break;
@@ -215,7 +211,7 @@ class Flipr {
             // console.log('drag', action);
             switch (action.state) {
                 case DragState.START:
-                    this.mouse.copyFrom(action.enter.root);
+                    this.mouse.copyFrom(this.book.active.root);
                     this.mouse.moveTo(action.current, true);
                     break;
                 case DragState.MIDDLE:
@@ -228,7 +224,7 @@ class Flipr {
                         action.current
                     );
                     this.mouse.moveTo(destination, true).then((res) => {
-                        this.mouse.copyFrom(action.enter.root);
+                        this.mouse.copyFrom(this.book.active.root);
                         this.list.index = this.list.index + direction * 2;
                         console.log(destination, direction, this.list.index);
                     });

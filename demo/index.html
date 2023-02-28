@@ -7,6 +7,9 @@
             padding: 0;
             margin: 0;
             box-sizing: border-box;
+            user-select: none;
+            user-drag: none;
+            -webkit-user-drag: none;
         }
         html, body, #container {
             width: 100%;
@@ -17,8 +20,12 @@
             justify-content: center;
             align-items: center;
         }
-        .flipr {
-            outline: 1px solid grey;
+        .content-item {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            background: white;
         }
     </style>
 </head>
@@ -30,21 +37,28 @@
 
         const content = document.getElementById('content');
         content.style = 'display: none';
-        Array.from({ length: 6}).forEach((item, index) => {
-            const img = document.createElement('img');
-            img.className = 'content-item';
-            img.src = `./img/${index % 6}.png`;
-            img.alt = img.src;
-            content.appendChild(img);
-        });
-        // x.innerHTML = Array.from({ length: 5000 }).map(() => 5).join(' ');
+        const items = Array.from({ length: 6}).reduce((memo, _, index) => {
+            // const item = document.createElement('img');
+            // item.className = 'content-item';
+            // item.src = `./img/${index % 6}.png`;
+            const item = document.createElement('p');
+            item.className = 'content-item';
+            item.textContent = Array.from({ length: 540 }).map(() => index).join(' ');
+            memo.appendChild(item);
+            return memo;
+        }, document.createDocumentFragment());
+        content.append(items);
+
         console.log('init.....');
 
         const flipr = new Flipr({
             w: 800,
             h: 600,
+            // ph: 0,
+            // pv: 0,
             // align: 'vertical',
-            debug: true,
+            // debug: true,
+            content,
         });
         flipr.log();
 

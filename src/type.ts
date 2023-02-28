@@ -9,6 +9,7 @@ export interface FlipbookOptions {
     tSize: number;
     align: Align;
     debug: boolean;
+    content: HTMLElement;
 }
 
 export interface PageOptions {

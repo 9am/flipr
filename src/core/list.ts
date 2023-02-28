@@ -4,20 +4,20 @@ class List {
     private _a: any;
     private _b: any;
     private _index = 0;
-    content: CanvasImageSource[];
+    content: (CanvasImageSource | HTMLElement)[];
 
-    constructor(content: CanvasImageSource[]) {
+    constructor(content: any[]) {
         this.content = content;
         this._a = new Observable((arg) => {
             this._b = arg;
         });
     }
 
-    getItem(i: number): CanvasImageSource | undefined {
+    getItem(i: number): CanvasImageSource | HTMLElement | undefined {
         return this.content[i];
     }
 
-    getItemByOffset(offset: number): CanvasImageSource | undefined {
+    getItemByOffset(offset: number): CanvasImageSource | HTMLElement | undefined {
         return this.getItem(this._index + offset);
     }
 

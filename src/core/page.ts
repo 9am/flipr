@@ -22,7 +22,7 @@ class Page extends Area {
     clip: Area;
 
     constructor(option: PageOptions) {
-        super(Page.origin2Points(option.origin, option.w, option.h), `page.${option.id}`);
+        super(Page.origin2Points(option.origin, option.w, option.h), option.id);
         const { align, origin, w, h, offset } = option;
         this.align = align;
         this.origin = origin;
@@ -42,7 +42,7 @@ class Page extends Area {
     }
 
     get rotation(): number {
-        if (this.id === 'page.prev' || this.id === 'page.curr') {
+        if (this.id === 'prev' || this.id === 'curr') {
             return 0;
         }
         const [x0, y0] = this.clip.points[3]!.val;

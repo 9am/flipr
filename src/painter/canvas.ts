@@ -3,14 +3,16 @@ import Line from '../core/line';
 import Circle from '../core/circle';
 import Area from '../core/area';
 import Page from '../core/page';
+import Painter from './base';
 
-class CanvasPainter {
+class CanvasPainter extends Painter {
     private _canvas: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
     private _w: number;
     private _h: number;
 
     constructor(w: number, h: number) {
+        super();
         const dpr = window.devicePixelRatio;
         this._w = w;
         this._h = h;

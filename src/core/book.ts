@@ -250,6 +250,10 @@ class Book extends Area {
         return trigger;
     }
 
+    get active(): Area {
+        return this._active;
+    }
+
     set active(trigger: Area) {
         this._active = trigger;
 

@@ -8,7 +8,7 @@ class Mouse extends Point {
     private _destination: Point = new Point();
     private _isRunning = false;
     private _prevent = false;
-    private _tweenComplete: Function;
+    private _tweenComplete: Function = () => {};
     private _frame: number;
 
     constructor() {
@@ -47,7 +47,7 @@ class Mouse extends Point {
                 this._isRunning = false;
                 if (prevent) {
                     this._prevent = false;
-                    queueMicrotask(() => this._tweenComplete(true));
+                    this._tweenComplete(true);
                 }
             }
         });
@@ -63,7 +63,9 @@ class Mouse extends Point {
         if (!this._isRunning) {
             this._isRunning = true;
             this._prevent = prevent;
-            this.tween(prevent);
+            queueMicrotask(() => {
+                this.tween(prevent);
+            });
         }
         return new Promise((resolve) => (this._tweenComplete = resolve));
     }

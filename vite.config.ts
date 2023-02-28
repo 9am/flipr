@@ -4,11 +4,6 @@ import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     plugins: [dts({ insertTypesEntry: true })],
-    // css: {
-    //     postcss: {
-    //         plugins: [postcssNesting],
-    //     },
-    // },
     build: {
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
@@ -19,12 +14,6 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 exports: 'named',
-                // assetFileNames(assetInfo) {
-                //     if (assetInfo.name === 'style.css') {
-                //         return 'theme.css';
-                //     }
-                //     return assetInfo.name;
-                // },
             },
         },
     },
