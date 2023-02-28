@@ -1,5 +1,3 @@
-// import Dispatcher from './dispatcher';
-
 class Point {
     id: string;
     x: number;
@@ -48,6 +46,15 @@ class Point {
 
     isSolid(): boolean {
         return this.x !== Infinity && this.y !== Infinity;
+    }
+
+    closest(list: Point[]): Point {
+        const [, result] = list.reduce((memo, target) => {
+            const [minDist] = memo;
+            const dist = this.dist(target);
+            return dist < minDist ? [dist, target] : memo;
+        }, [Number.MAX_SAFE_INTEGER, new Point()]);
+        return result;
     }
 
     log(): void {

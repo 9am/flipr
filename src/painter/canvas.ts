@@ -2,6 +2,7 @@ import Point from '../core/point';
 import Line from '../core/line';
 import Circle from '../core/circle';
 import Area from '../core/area';
+import Page from '../core/page';
 
 class CanvasPainter {
     private _canvas: HTMLCanvasElement;
@@ -23,11 +24,22 @@ class CanvasPainter {
         this._ctx.clearRect(0, 0, this._w, this._h);
     }
 
-    drawClip(points: Point[] = [], img: CanvasImageSource, point: Point): void {
+    drawClip(
+        content: CanvasImageSource,
+        origin: Point,
+        w: number,
+        h: number,
+        rotation: number,
+        points: Point[] = [],
+    ): void {
         this._ctx.save();
         this.drawPath(points);
         this._ctx.clip();
-        this._ctx.drawImage(img, 0, 0, 400, 600, point.x, point.y, 400, 600);
+        this._ctx.translate(origin.x, origin.y);
+        this._ctx.rotate(rotation);
+        // this._ctx.drawImage(content, 0, 0, content.width as number, content.height as number, 0, 0, w, h);
+        content && this._ctx.drawImage(content, 0, 0, 300, 200, 0, 0, w, h);
+        this._ctx.setTransform(1, 0, 0, 1, 0, 0);
         this._ctx.restore();
     }
 
@@ -66,7 +78,7 @@ class CanvasPainter {
         this._ctx.fillText(text, x, y);
     }
 
-    draw(entity: Point | Circle | Line | Area): void {
+    draw(entity: Point | Circle | Line | Area | Page, content?: CanvasImageSource): void {
         switch(entity.constructor.name) {
             case 'Point':
                 const point = entity as Point;
@@ -84,10 +96,16 @@ class CanvasPainter {
                 line.points.forEach(point => this.draw(point));
                 break;
             case 'Area':
-            case 'Page':
+            case 'Book':
                 const area = entity as Area;
                 this.drawPath(area.points);
                 area.points.forEach(point => this.draw(point));
+                break;
+            case 'Page':
+                const page = entity as Page;
+                this.drawClip(content!, page.origin, page.w, page.h, page.rotation, page.clip.points);
+                // this.drawPath(page.clip.points);
+                // page.clip.points.forEach(point => this.draw(point));
                 break;
             default:
                 break;
