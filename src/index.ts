@@ -30,6 +30,7 @@ import {
     Align,
     Direction,
 } from './type';
+import './index.css';
 
 class Flipr {
     private painter: Painter;
@@ -52,9 +53,12 @@ class Flipr {
             align = Align.HORIZONTAL,
             content = document.createElement('div'),
         } = this.options;
-        // this.painter = new CanvasPainter(w, h, ph, pv);
+        // this.painter = new CanvasPainter(w, h);
         this.painter = new DOMPainter(w, h, ph, pv);
-        this.list = new List(Array.from(content.children));
+        this.list = new List(
+            Array.from(content.children).map((node) => node.cloneNode(true)),
+            this.options.debug
+        );
 
         this.mouse = new Mouse();
         this.book = new Book(
@@ -78,12 +82,13 @@ class Flipr {
 
         if (this.options.debug) {
             Object.values(this.book.triggers).forEach((area) => this.painter.draw(area));
-            Array.from(this.book.rMap.values()).forEach((circles) => {
-                circles.forEach((c) => this.painter.draw(c));
+            Array.from(this.book.rMap.values()).forEach((restrain) => {
+                restrain.forEach((circle) => this.painter.draw(circle));
             });
             Object.values(this.book.pages).forEach((page) => {
                 this.painter.draw(page.clip);
             });
+            this.painter.draw(this.mouse);
         } else {
             this.painter.draw(
                 this.book.pages.prev,
@@ -93,6 +98,7 @@ class Flipr {
                 this.book.pages.curr,
                 this.list.getItemByOffset(this.book.pages.curr.offset)
             );
+            this.painter.draw(this.book.shadows.back);
             this.painter.draw(
                 this.book.pages.back,
                 this.list.getItemByOffset(this.book.pages.back.offset)
@@ -101,6 +107,7 @@ class Flipr {
                 this.book.pages.front,
                 this.list.getItemByOffset(this.book.pages.front.offset)
             );
+            this.painter.draw(this.book.shadows.front);
         }
     }
 
@@ -112,7 +119,7 @@ class Flipr {
         };
         const mouseDown = fromEvent<MouseEvent>(this.root, 'mousedown').pipe(
             map(toXY),
-            map((xy) => ({ enter: this.book.test(xy), xy })),
+            map((xy) => ({ enter: this.book.test(xy, this.list.isCover()), xy })),
             filter(({ enter }) => !!enter)
         );
         const mouseMove = fromEvent<MouseEvent>(this.root, 'mousemove').pipe(
@@ -163,7 +170,7 @@ class Flipr {
             map(([m]) => m)
         );
         const enterLeave = moveUtilDragEnd.pipe(
-            map((xy) => this.book.test(xy)),
+            map((xy) => this.book.test(xy, this.list.isCover())),
             distinctUntilChanged(),
             pairwise(),
             map(([lastEnter, enter]: any[]) => {
@@ -175,7 +182,7 @@ class Flipr {
             })
         );
         const move = moveUtilDragEnd.pipe(
-            map((xy) => [xy, this.book.test(xy)]),
+            map((xy) => [xy, this.book.test(xy, this.list.isCover())]),
             filter(([xy, enter]) => !!enter),
             map(([xy, enter]) => ({
                 enter,

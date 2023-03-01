@@ -3,6 +3,7 @@ import Page from './page';
 import Circle from './circle';
 import Line from './line';
 import Point from './point';
+import Shadow from './shadow';
 import { Align, Direction } from '../type';
 
 export enum TriggerName {
@@ -27,6 +28,7 @@ class Book extends Area {
     ml: Line; // middle line
     pages: Record<PageName, Page>; // pages object
     triggers: Record<TriggerName, Area>; // trigger object
+    shadows: Record<PageName, Shadow>; // trigger object
     rMap: Map<Area, Circle[]> = new Map(); // map of restriction circle
     dMap: Map<Area, [Point, Direction]> = new Map(); // map of destination
     aMap: Map<Area, [Area, Area, Point, number, number]> = new Map(); // map of active handle
@@ -47,6 +49,13 @@ class Book extends Area {
         this.rMap = this.prepareRestrainMap();
         this.dMap = this.prepareDestinationMap();
         this._active = this.triggers.tl;
+        this.shadows = {
+            [PageName.BACK]: new Shadow(PageName.BACK).add([
+                this.pages.prev.clip.lines,
+                this.pages.curr.clip.lines,
+            ]),
+            [PageName.FRONT]: new Shadow(PageName.FRONT).add(this.pages.front.clip.lines),
+        };
         // const [top, right, bottom, left] = [
         //     [this.triggers.tr, this.triggers.tl],
         //     [this.triggers.tr, this.triggers.br],
@@ -193,10 +202,10 @@ class Book extends Area {
                   ];
         const tm = t0.root.getMiddle(t1.root);
         const bm = b0.root.getMiddle(b1.root);
-        const d0 = t0.root.dist(t1.root) / 2 - 1;
-        const d1 = t0.root.dist(bm) - 1;
-        const r0 = [new Circle(bm.x, bm.y, d1), new Circle(tm.x, tm.y, d0)];
-        const r1 = [new Circle(tm.x, tm.y, d1), new Circle(bm.x, bm.y, d0)];
+        const d0 = t0.root.dist(t1.root) / 2;
+        const d1 = t0.root.dist(bm);
+        const r0 = [new Circle(bm.x, bm.y, d1, 'r00'), new Circle(tm.x, tm.y, d0, 'r01')];
+        const r1 = [new Circle(tm.x, tm.y, d1, 'r10'), new Circle(bm.x, bm.y, d0, 'r11')];
         return this.align === Align.HORIZONTAL
             ? new Map<Area, Circle[]>([
                   [tl, r0],
@@ -237,13 +246,23 @@ class Book extends Area {
         this.pages.front.mirror(this.pages.back, this.ml);
     }
 
-    test(mouse: Point): Area | null {
-        const trigger = Object.values(this.triggers).reduce((memo: Area | null, rect) => {
-            if (memo) {
-                return memo;
+    test(mouse: Point, [isFrontCover, isEndCover]: [boolean, boolean]): Area | null {
+        // const trigger = Object.values(this.triggers).reduce((memo: Area | null, rect) => {
+        let triggers = Object.values(this.triggers);
+        if (isEndCover) {
+            triggers = [this.triggers.tl, this.triggers.bl];
+        }
+        if (isFrontCover) {
+            triggers = [this.triggers.tr, this.triggers.br];
+        }
+        let trigger = null;
+        triggers.some((area) => {
+            if (area.hit(mouse)) {
+                trigger = area;
+                return true;
             }
-            return rect.hit(mouse) ? rect : memo;
-        }, null);
+            return false;
+        });
         if (trigger) {
             this.active = trigger;
         }

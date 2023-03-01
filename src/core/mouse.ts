@@ -54,6 +54,9 @@ class Mouse extends Point {
     }
 
     moveTo(point: Point, prevent: boolean = false): Promise<boolean> {
+        this.copyFrom(point);
+        return Promise.resolve(true);
+
         this._destination.copyFrom(point);
         if (prevent) {
             cancelAnimationFrame(this._frame);

@@ -21,7 +21,7 @@ class CanvasPainter extends Painter {
         this._canvas.height = h * dpr;
         this._canvas.style.width = `${w}px`;
         this._canvas.style.height = `${h}px`;
-        this._canvas.className = 'flipr';
+        this._canvas.className = 'painter';
         this._ctx = this._canvas.getContext('2d') as CanvasRenderingContext2D;
         this._ctx.scale(dpr, dpr);
     }

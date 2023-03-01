@@ -25,7 +25,7 @@ class Area {
                         point,
                         this._points[index < this._points.length - 1 ? index + 1 : 0]!,
                     ],
-                    ''
+                    `${this.id}-${index}`
                 ),
             ],
             [] as Line[]

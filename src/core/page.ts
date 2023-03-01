@@ -29,7 +29,7 @@ class Page extends Area {
         this.w = w;
         this.h = h;
         this.offset = offset;
-        this.clip = new Area(Page.origin2Points(origin, w, h), `${this.id}.clip`);
+        this.clip = new Area(Page.origin2Points(origin, w, h), `${this.id}-clip`);
     }
 
     set origin(p: Point) {
