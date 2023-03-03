@@ -50,11 +50,15 @@ class Book extends Area {
         this.dMap = this.prepareDestinationMap();
         this._active = this.triggers.tl;
         this.shadows = {
-            [PageName.BACK]: new Shadow(PageName.BACK).add([
-                this.pages.prev.clip.lines,
-                this.pages.curr.clip.lines,
+            [PageName.PREV]: new Shadow(PageName.PREV).add(this.pages.prev.clip.lines),
+            [PageName.CURR]: new Shadow(PageName.CURR).add(this.pages.curr.clip.lines),
+            [PageName.BACK]: new Shadow(PageName.BACK, this).add([
+                ...this.pages.front.clip.lines,
+                new Line(this.pages.prev.points.slice(1, 3), 'front-middle'),
             ]),
-            [PageName.FRONT]: new Shadow(PageName.FRONT).add(this.pages.front.clip.lines),
+            [PageName.FRONT]: new Shadow(PageName.FRONT, this.pages.front.clip).add(
+                this.pages.back.clip.lines[0]!
+            ),
         };
         // const [top, right, bottom, left] = [
         //     [this.triggers.tr, this.triggers.tl],

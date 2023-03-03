@@ -1,11 +1,14 @@
 import Line from './line';
+import Area from './area';
 
 class Shadow {
     readonly id: string = 'shadow';
+    readonly clip: Area | undefined;
     private _lineMap: Map<string, Line> = new Map();
 
-    constructor(id: string) {
+    constructor(id: string, clip?: Area) {
         this.id = id;
+        this.clip = clip;
     }
 
     add(line: Line | Line[]) {

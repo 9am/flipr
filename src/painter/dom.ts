@@ -71,7 +71,7 @@ class DomPainter extends Painter {
         const rotation = Math.atan2(b.y - a.y, b.x - a.x);
         updateProperties(dom, {
             '--len': a.dist(b),
-            '--transform': `translate(${a.x}px, ${a.y}px) rotate(${rotation}rad)`,
+            '--transform': `translate3d(${a.x}px, ${a.y}px, 0) rotate(${rotation}rad)`,
         });
     }
 
@@ -99,8 +99,10 @@ class DomPainter extends Painter {
 
     drawShadow(entity: Shadow) {
         const dom = this.getElement(entity);
+        const clip = entity?.clip?.points ?? [];
+        const path = clip.map((p: Point) => `${p.x},${p.y}`);
         updateProperties(dom, {
-            '--clip-path': `path("M 60,0 L 740,0 L 740,600 L 60,600 Z")`,
+            '--clip-path': `path('M ${path.join(' L ')} Z')`,
         });
         entity.toArray().forEach((line) => {
             this.drawLine(line);
@@ -124,7 +126,8 @@ class DomPainter extends Painter {
             cc?.replaceChildren(content ?? '');
         }
         updateProperties(cc, {
-            '--transform': `translate(${origin.x}px, ${origin.y}px) rotate(${rotation}rad)`,
+            '--rotation': `${rotation}rad`,
+            '--transform': `translate3d(${origin.x}px, ${origin.y}px, 0) rotate(${rotation}rad)`,
         });
     }
 

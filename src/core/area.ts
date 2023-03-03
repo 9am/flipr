@@ -1,6 +1,8 @@
 import Point from './point';
 import Line from './line';
 
+const toFixed2 = (num: number): number => Math.round(num * 100) / 100;
+
 class Area {
     id: string;
     private _points: Point[] = [];
@@ -54,24 +56,24 @@ class Area {
     }
 
     hit(point: Point): boolean {
-        const [x, y] = point.val;
+        const [x, y] = point.val.map(toFixed2) as [number, number];
         return (
-            x <
+            x <=
                 Math.max.apply(
                     null,
                     this.points.map((point) => point.x)
                 ) &&
-            x >
+            x >=
                 Math.min.apply(
                     null,
                     this.points.map((point) => point.x)
                 ) &&
-            y <
+            y <=
                 Math.max.apply(
                     null,
                     this.points.map((point) => point.y)
                 ) &&
-            y >
+            y >=
                 Math.min.apply(
                     null,
                     this.points.map((point) => point.y)

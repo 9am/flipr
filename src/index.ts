@@ -90,19 +90,21 @@ class Flipr {
             });
             this.painter.draw(this.mouse);
         } else {
+            this.painter.draw(this.book.shadows.prev);
             this.painter.draw(
                 this.book.pages.prev,
                 this.list.getItemByOffset(this.book.pages.prev.offset)
             );
+            this.painter.draw(this.book.shadows.curr);
             this.painter.draw(
                 this.book.pages.curr,
                 this.list.getItemByOffset(this.book.pages.curr.offset)
             );
-            this.painter.draw(this.book.shadows.back);
             this.painter.draw(
                 this.book.pages.back,
                 this.list.getItemByOffset(this.book.pages.back.offset)
             );
+            this.painter.draw(this.book.shadows.back);
             this.painter.draw(
                 this.book.pages.front,
                 this.list.getItemByOffset(this.book.pages.front.offset)
@@ -195,18 +197,21 @@ class Flipr {
 
         // enter and leave
         trigger.subscribe((action: any) => {
-            if (this.mouse.prevent) {
-                return;
-            }
             // console.log('trigger', action);
             switch (action.state) {
                 case HoverState.ENTER:
                     this.mouse.copyFrom(action.enter.root);
                     break;
                 case HoverState.MIDDLE:
+                    if (this.mouse.prevent) {
+                        return;
+                    }
                     this.mouse.moveTo(action.current);
                     break;
                 case HoverState.LEAVE:
+                    if (this.mouse.prevent) {
+                        return;
+                    }
                     this.mouse.moveTo(this.book.active.root);
                     break;
                 default:

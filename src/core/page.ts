@@ -24,10 +24,10 @@ class Page extends Area {
     constructor(option: PageOptions) {
         super(Page.origin2Points(option.origin, option.w, option.h), option.id);
         const { align, origin, w, h, offset } = option;
-        this.align = align;
-        this.origin = origin;
         this.w = w;
         this.h = h;
+        this.align = align;
+        this.origin = origin;
         this.offset = offset;
         this.clip = new Area(Page.origin2Points(origin, w, h), `${this.id}-clip`);
     }
@@ -54,9 +54,13 @@ class Page extends Area {
     updateClip(points: Point[], trigger: Area): void {
         const [p0, p1, p2, p3] = points;
         const [c0, c1] = this.clip.points;
+        const test0 = [p0, p1, p3].find((p) => this.hit(p));
+        const test2 = [p2, p1, p3].find((p) => this.hit(p));
         if (this.align === Align.HORIZONTAL) {
-            c0!.val = p0!.isSolid() ? p0!.val : trigger.root.val;
-            c1!.val = p2!.isSolid() ? p2!.val : trigger.root.val;
+            c0.copyFrom(test0);
+            c1.copyFrom(test2);
+            // c0!.val = test0!.isSolid() ? test0!.val : trigger.root.val;
+            // c1!.val = test2!.isSolid() ? test2!.val : trigger.root.val;
         } else {
             c0!.val = p1!.isSolid() ? p1!.val : trigger.root.val;
             c1!.val = p3!.isSolid() ? p3!.val : trigger.root.val;

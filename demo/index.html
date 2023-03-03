@@ -43,7 +43,7 @@
             // item.src = `./img/${index % 6}.png`;
             const item = document.createElement('p');
             item.className = 'content-item';
-            item.textContent = Array.from({ length: 540 }).map(() => index).join(' ');
+            item.textContent = Array.from({ length: 475 }).map(() => index).join(' ');
             memo.appendChild(item);
             return memo;
         }, document.createDocumentFragment());
@@ -57,7 +57,7 @@
             // ph: 0,
             // pv: 0,
             // align: 'vertical',
-            debug: true,
+            // debug: true,
             content,
         });
         flipr.log();
