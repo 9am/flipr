@@ -1,15 +1,12 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>demo-1</title>
+    <title>@9am/flipr</title>
     <style>
         * {
             padding: 0;
             margin: 0;
             box-sizing: border-box;
-            user-select: none;
-            user-drag: none;
-            -webkit-user-drag: none;
         }
         html, body, #container {
             width: 100%;
@@ -31,25 +28,21 @@
 </head>
 <body>
     <div id="container"></div>
-    <div id="content"></div>
     <script type="module">
         import Flipr from '/src';
 
-        const content = document.getElementById('content');
-        content.style = 'display: none';
-        const items = Array.from({ length: 6}).reduce((memo, _, index) => {
+        const content = Array.from({ length: 6}).reduce((memo, _, index) => {
             const item = document.createElement('p');
             item.className = 'content-item';
-            item.textContent = Array.from({ length: 475 }).map(() => index).join(' ');
+            item.textContent = Array.from({ length: 440 }).map(() => index).join(' ');
             memo.appendChild(item);
             return memo;
-        }, document.createDocumentFragment());
-        content.append(items);
+        }, document.createElement('div'));
 
         console.log('init.....');
 
         const flipr = new Flipr({
-            w: 680,
+            w: 600,
             h: 400,
             // ph: 100,
             // pv: 100,

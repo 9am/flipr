@@ -1,7 +1,7 @@
 import Area from './core/area';
 import Point from './core/point';
 
-export interface FlipbookOptions {
+export interface FliprOptions {
     w: number;
     h: number;
     ph: number;

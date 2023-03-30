@@ -11,7 +11,6 @@ class List {
         this.content = content;
         if (content.length % 2) {
             const end = document.createElement('section');
-            end.className = 'content-item';
             end.style.textAlign = 'center';
             end.textContent = 'The End';
             this.content.push(end);

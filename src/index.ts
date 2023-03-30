@@ -22,7 +22,7 @@ import {
     throttleTime,
 } from 'rxjs/operators';
 import {
-    FlipbookOptions,
+    FliprOptions,
     DragState,
     Drag,
     HoverState,
@@ -35,12 +35,12 @@ import './index.css';
 class Flipr {
     private painter: Painter;
     root: Window;
-    options: FlipbookOptions;
+    options: FliprOptions;
     mouse: Mouse;
     book: Book;
     list: List;
 
-    constructor(options: FlipbookOptions) {
+    constructor(options: FliprOptions) {
         this.options = options;
         this.root = window;
 

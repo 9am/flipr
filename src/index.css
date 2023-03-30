@@ -1,13 +1,18 @@
 .painter {
     --w: 800;
     --h: 600;
+    --padding: 20px;
     position: relative;
     top: 0;
     left: 0;
+    z-index: 9999;
     width: calc(var(--w) * 1px);
     height: calc(var(--h) * 1px);
     * {
         box-sizing: border-box;
+        user-select: none;
+        user-drag: none;
+        -webkit-user-drag: none;
     }
     .pitem {
         display: block;
@@ -69,7 +74,7 @@
             transform: var(--transform);
             transform-origin: top left;
             overflow: auto;
-            padding: 20px;
+            padding: var(--padding);
             background: white;
             &:empty {
                 /* visibility: hidden; */
