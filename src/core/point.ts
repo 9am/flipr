@@ -2,6 +2,7 @@ class Point {
     id: string;
     x: number;
     y: number;
+    readonly r: number = 2;
 
     constructor(x = 0, y = 0, id = '') {
         this.id = id;

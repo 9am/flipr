@@ -4,6 +4,7 @@ import Circle from '../core/circle';
 import Area from '../core/area';
 import Page from '../core/page';
 import Shadow from '../core/shadow';
+import { Align, Offset } from '../type';
 import Painter from './base';
 
 const updateProperties = (
@@ -19,15 +20,16 @@ class DomPainter extends Painter {
     private _wrapper: HTMLElement;
     private _domMap: Map<string, HTMLElement> = new Map();
 
-    constructor(w: number, h: number, ph: number, pv: number) {
+    constructor(w: number, h: number, ph: number, pv: number, align: Align) {
         super();
         this._wrapper = document.createElement('div');
-        this._wrapper.className = 'painter';
+        this._wrapper.className = `painter ${align}`;
         updateProperties(this._wrapper, {
             '--w': w,
             '--h': h,
             '--ph': ph,
             '--pv': pv,
+            // '--clip': `inset(-1000% ${ph}px)`,
         });
     }
 
@@ -41,9 +43,12 @@ class DomPainter extends Painter {
         ele.className = `pitem ${etype}`;
         ele.id = id;
         if (etype === 'page') {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'wrapper';
             const content = document.createElement('div');
             content.className = 'content';
-            ele.appendChild(content);
+            wrapper.appendChild(content);
+            ele.appendChild(wrapper);
         }
         if (etype === 'shadow') {
             entity.toArray().forEach((line: Line) => this.addElement(line, ele));
@@ -59,10 +64,10 @@ class DomPainter extends Painter {
     }
 
     clear(): void {
-        for (const [key, dom] of this._domMap) {
-            dom.remove();
-        }
-        this._domMap.clear();
+        // for (const [key, dom] of this._domMap) {
+        //     dom.remove();
+        // }
+        // this._domMap.clear();
     }
 
     drawLine(line: Line): void {
@@ -78,7 +83,10 @@ class DomPainter extends Painter {
     drawCircle(entity: Point | Circle): void {
         const dom = this.getElement(entity);
         const [x, y] = entity.val;
-        const radius = entity.r ?? 2;
+        const radius = entity.r;
+        if (entity.id.match(/back-clip/)) {
+            dom!.textContent = entity.id;
+        }
         updateProperties(dom, {
             '--x': x,
             '--y': y,
@@ -110,25 +118,34 @@ class DomPainter extends Painter {
     }
 
     drawPage(entity: Page, content: HTMLElement | undefined): void {
-        const origin = entity.origin;
-        const w = entity.w;
-        const h = entity.h;
-        const rotation = entity.rotation;
-        const clip = entity.clip.points;
-        const path = clip.map((p: Point) => `${p.x},${p.y}`);
+        const { origin, offset, w, h, rotation, clip } = entity;
+        const path = clip.points.map((p: Point) => `${p.x},${p.y}`);
         const dom = this.getElement(entity);
-        updateProperties(dom, {
-            // visibility: content ? 'visible' : 'hidden',
+        dom?.classList.toggle(
+            'side-a',
+            offset === Offset.NEXT || offset === Offset.PREV_3 || offset === Offset.PREV
+        );
+        dom?.classList.toggle(
+            'side-b',
+            offset === Offset.PREV_2 || offset === Offset.NEXT_2 || offset === Offset.CURR
+        );
+        const wrapper = dom?.querySelector('.wrapper') as HTMLElement;
+        updateProperties(wrapper, {
             '--clip-path': `path('M ${path.join(' L ')} Z')`,
-        });
-        const cc = dom?.children.item(0) as HTMLElement;
-        if (!cc?.isSameNode(content as Node)) {
-            cc?.replaceChildren(content ?? '');
-        }
-        updateProperties(cc, {
             '--rotation': `${rotation}rad`,
             '--transform': `translate3d(${origin.x}px, ${origin.y}px, 0) rotate(${rotation}rad)`,
         });
+        const cc = dom?.querySelector('.content') as HTMLElement;
+        if (!cc.contains(content as Node)) {
+            cc?.replaceChildren(content ?? '');
+        }
+        // update shadow percentage
+        if (entity.id === 'front') {
+            const percent = entity.clip.getRectArea() / entity.area;
+            updateProperties(this.dom, {
+                '--percent': percent,
+            });
+        }
     }
 
     draw(
@@ -138,7 +155,8 @@ class DomPainter extends Painter {
         this.addElement(entity);
         switch (entity.constructor.name) {
             case 'Point':
-            case 'Circle': {
+            case 'Circle':
+            case 'Mouse': {
                 this.drawCircle(entity as Circle | Point);
                 break;
             }

@@ -35,7 +35,7 @@ class Mouse extends Point {
 
     tween(prevent: boolean): void {
         this._frame = requestAnimationFrame(() => {
-            if (this.dist(this._destination) > 0.01) {
+            if (this.dist(this._destination) > 0.1) {
                 const [x0, y0] = this.val;
                 const [x1, y1] = this._destination.val;
                 const [x, y] = [x0 + (x1 - x0) / 5, y0 + (y1 - y0) / 5];

@@ -10,6 +10,7 @@ export interface FlipbookOptions {
     align: Align;
     debug: boolean;
     content: HTMLElement;
+    pageNum: number;
 }
 
 export interface PageOptions {
@@ -55,4 +56,13 @@ export enum Direction {
     PREV = -1,
     STAY = 0,
     NEXT = +1,
+}
+
+export enum Offset {
+    PREV_3 = -3,
+    PREV_2 = -2,
+    PREV = -1,
+    CURR = 0,
+    NEXT = +1,
+    NEXT_2 = +2,
 }

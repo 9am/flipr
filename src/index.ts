@@ -47,16 +47,18 @@ class Flipr {
         const {
             w,
             h,
-            ph = 60,
-            pv = 100,
+            ph = 0,
+            pv = 0,
             tSize = 100,
             align = Align.HORIZONTAL,
+            pageNum = 0,
             content = document.createElement('div'),
         } = this.options;
         // this.painter = new CanvasPainter(w, h);
-        this.painter = new DOMPainter(w, h, ph, pv);
+        this.painter = new DOMPainter(w, h, ph, pv, align);
         this.list = new List(
             Array.from(content.children).map((node) => node.cloneNode(true)),
+            pageNum,
             this.options.debug
         );
 
@@ -90,12 +92,10 @@ class Flipr {
             });
             this.painter.draw(this.mouse);
         } else {
-            this.painter.draw(this.book.shadows.prev);
             this.painter.draw(
                 this.book.pages.prev,
                 this.list.getItemByOffset(this.book.pages.prev.offset)
             );
-            this.painter.draw(this.book.shadows.curr);
             this.painter.draw(
                 this.book.pages.curr,
                 this.list.getItemByOffset(this.book.pages.curr.offset)
@@ -104,11 +104,11 @@ class Flipr {
                 this.book.pages.back,
                 this.list.getItemByOffset(this.book.pages.back.offset)
             );
-            this.painter.draw(this.book.shadows.back);
             this.painter.draw(
                 this.book.pages.front,
                 this.list.getItemByOffset(this.book.pages.front.offset)
             );
+            this.painter.draw(this.book.shadows.back);
             this.painter.draw(this.book.shadows.front);
         }
     }

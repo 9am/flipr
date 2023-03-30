@@ -6,7 +6,6 @@
     left: 0;
     width: calc(var(--w) * 1px);
     height: calc(var(--h) * 1px);
-    outline: 1px dashed grey;
     * {
         box-sizing: border-box;
     }
@@ -23,6 +22,7 @@
 /* pitem */
 .painter {
     .point,
+    .mouse,
     .circle {
         --x: 0;
         --y: 0;
@@ -35,6 +35,12 @@
         border-radius: 50%;
         transform: translate3d(var(--x-px), var(--y-px), 0);
         border: 1px solid darkgrey;
+        font-size: 8px;
+        white-space: nowrap;
+    }
+    .mouse {
+        z-index: 999;
+        border-color: orange;
     }
     .area {
         --clip-path: initial;
@@ -51,68 +57,117 @@
         transform: var(--transform) translate3d(0, -50%, 0);
         background: var(--stroke-color);
     }
-    .page {
+    .wrapper {
         --clip-path: initial;
         --transform: initial;
         clip-path: var(--clip-path);
-    }
-    .content {
-        width: calc(50% - var(--ph) * 1px);
-        height: calc(100% - var(--pv) * 2px);
-        transform: var(--transform);
-        transform-origin: top left;
-        overflow: auto;
-        padding: 20px;
-        background: white;
-        outline: 1px solid lightgrey;
-        outline-offset: -1px;
-        &:empty {
-            /* visibility: hidden; */
+        width: 100%;
+        height: 100%;
+        & .content {
+            width: calc(50% - var(--ph) * 1px);
+            height: calc(100% - var(--pv) * 2px);
+            transform: var(--transform);
+            transform-origin: top left;
+            overflow: auto;
+            padding: 20px;
+            background: white;
+            &:empty {
+                /* visibility: hidden; */
+            }
         }
     }
 }
 
 /* shadow */
 .painter {
+    --dark: rgba(0,0,0,0.4);
+    --light: rgba(0,0,0,0.1);
+    --blank: transparent;
+    --percent: 0;
+    .page {
+        filter: drop-shadow(0 0 3px var(--light));
+        &:has(.content:empty) {
+            filter: unset;
+        }
+        & .content {
+            &:empty {
+                &::after {
+                    background: unset !important;
+                }
+            }
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 40px;
+                height: 100%;
+                background: green;
+            }
+        }
+    }
+    .page.side-a .content {
+        &::after {
+            right: 0;
+            background: linear-gradient(to left, var(--light), var(--blank));
+        }
+    }
+    .page.side-b .content {
+        &::after {
+            left: 0;
+            background: linear-gradient(to right, var(--light), var(--blank));
+        }
+    }
+
     .shadow {
         clip-path: var(--clip-path);
-    }
-    .shadow .line {
-        --stroke-width: 2px;
-        --stroke-color: dimgrey;
-        --blur: 2px;
-        filter: blur(var(--blur));
-    }
-    #shadow-prev,
-    #shadow-curr {
-        .line {
-            --stroke-width: 1px;
+        filter: blur(2px);
+        opacity: calc(1 - var(--percent) * var(--percent));
+        & .line {
+            --scale-percent: calc(var(--percent) * 0.8 + 0.05);
+            --stroke-width: calc(var(--scale-percent) * (var(--w) - var(--pv)) * 1px);
+            border-radius: 30px;
+            transform: var(--transform) translate3d(-50%, -50%, 0) scaleX(2);
         }
     }
     #shadow-back {
         .line {
-            --stroke-color: black;
-        }
-        .line:first-child {
-            --stroke-width: 6px;
-            --blur: 6px;
-        }
-        #line-front-middle {
-            --stroke-width: 6px;
-            --blur: 6px;
+            --scale-percent: var(--percent);
+            --stroke-color: linear-gradient(0deg,
+                var(--blank) 0%,
+                var(--light) 50%,
+                var(--blank) 100%);
         }
     }
     #shadow-front {
         .line {
-            --dark: rgba(0,0,0,0.45);
-            --light: rgba(0,0,0,0.1);
-            --blank: transparent;
-            --stroke-color: linear-gradient(0deg, var(--blank) 0%, var(--dark) 35%, var(--light) 45%, var(--blank) 50%, var(--light) 55%, var(--dark) 65%, var(--blank) 100%);
-            --stroke-width: 100%;
-            opacity: 0.7;
-            transform: var(--transform) translate3d(-50%, -50%, 0) scaleX(2);
-            border-radius: 0;
-            filter: unset;
+            --stroke-color: linear-gradient(0deg,
+                var(--blank) 0%,
+                var(--dark) 35%, var(--blank) 45%,
+                var(--light) 50%,
+                var(--blank) 55%, var(--dark) 65%,
+                var(--blank) 100%);
         }
+    }
+}
+
+.painter {
+    #page-prev {
+        z-index: 0;
+    }
+    #page-curr {
+        z-index: 1;
+    }
+    #page-back {
+        z-index: 2;
+    }
+    #page-front {
+        z-index: 4;
+    }
+    #shadow-back {
+        z-index: 3;
+    }
+    #shadow-front {
+        z-index: 5;
     }
 }

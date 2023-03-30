@@ -7,11 +7,12 @@ class List {
     private _index = 0;
     content: (CanvasImageSource | HTMLElement)[];
 
-    constructor(content: any[], debug: boolean) {
+    constructor(content: any[], index = 0, debug: boolean) {
         this.content = content;
         this.debug = debug;
         this._a = new Observable((arg) => {
             this._b = arg;
+            this.index = index;
         });
     }
 

@@ -2,6 +2,9 @@ import Point from './point';
 import Line from './line';
 
 const toFixed2 = (num: number): number => Math.round(num * 100) / 100;
+const triangleArea = (a: Point, b: Point, c: Point): number => {
+    return Math.abs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2;
+};
 
 class Area {
     id: string;
@@ -79,6 +82,13 @@ class Area {
                     this.points.map((point) => point.y)
                 )
         );
+    }
+
+    getRectArea(): number {
+        const [a, b, c, d] = this._points as [Point, Point, Point, Point];
+        const x = triangleArea(a, b, c) + triangleArea(a, d, c);
+        const y = triangleArea(b, a, d) + triangleArea(b, c, d);
+        return Math.min(x, y);
     }
 }
 

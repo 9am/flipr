@@ -20,6 +20,7 @@ class Page extends Area {
     w: number;
     h: number;
     clip: Area;
+    area: number;
 
     constructor(option: PageOptions) {
         super(Page.origin2Points(option.origin, option.w, option.h), option.id);
@@ -30,6 +31,11 @@ class Page extends Area {
         this.origin = origin;
         this.offset = offset;
         this.clip = new Area(Page.origin2Points(origin, w, h), `${this.id}-clip`);
+        this.area = this.getRectArea();
+    }
+
+    private isPlainPage(): boolean {
+        return this.id === 'prev' || this.id === 'curr';
     }
 
     set origin(p: Point) {
@@ -42,7 +48,7 @@ class Page extends Area {
     }
 
     get rotation(): number {
-        if (this.id === 'prev' || this.id === 'curr') {
+        if (this.isPlainPage()) {
             return 0;
         }
         const [x0, y0] = this.clip.points[3]!.val;
@@ -57,14 +63,22 @@ class Page extends Area {
         const test0 = [p0, p1, p3].find((p) => this.hit(p));
         const test2 = [p2, p1, p3].find((p) => this.hit(p));
         if (this.align === Align.HORIZONTAL) {
-            c0.copyFrom(test0);
-            c1.copyFrom(test2);
-            // c0!.val = test0!.isSolid() ? test0!.val : trigger.root.val;
-            // c1!.val = test2!.isSolid() ? test2!.val : trigger.root.val;
+            c0!.val = test0!.isSolid() ? test0!.val : trigger.root.val;
+            c1!.val = test2!.isSolid() ? test2!.val : trigger.root.val;
         } else {
             c0!.val = p1!.isSolid() ? p1!.val : trigger.root.val;
             c1!.val = p3!.isSolid() ? p3!.val : trigger.root.val;
         }
+
+        // const [p0, p1, p2, p3] = points;
+        // const [c0, c1] = this.clip.points;
+        // if (this.align === Align.HORIZONTAL) {
+        //     c0!.val = p0!.isSolid() ? p0!.val : trigger.root.val;
+        //     c1!.val = p2!.isSolid() ? p2!.val : trigger.root.val;
+        // } else {
+        //     c0!.val = p1!.isSolid() ? p1!.val : trigger.root.val;
+        //     c1!.val = p3!.isSolid() ? p3!.val : trigger.root.val;
+        // }
     }
 
     mirror(page: Page, line: Line): void {

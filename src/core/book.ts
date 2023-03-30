@@ -4,7 +4,7 @@ import Circle from './circle';
 import Line from './line';
 import Point from './point';
 import Shadow from './shadow';
-import { Align, Direction } from '../type';
+import { Align, Direction, Offset } from '../type';
 
 export enum TriggerName {
     TL = 'tl',
@@ -50,14 +50,11 @@ class Book extends Area {
         this.dMap = this.prepareDestinationMap();
         this._active = this.triggers.tl;
         this.shadows = {
-            [PageName.PREV]: new Shadow(PageName.PREV).add(this.pages.prev.clip.lines),
-            [PageName.CURR]: new Shadow(PageName.CURR).add(this.pages.curr.clip.lines),
             [PageName.BACK]: new Shadow(PageName.BACK, this).add([
-                ...this.pages.front.clip.lines,
-                new Line(this.pages.prev.points.slice(1, 3), 'front-middle'),
+                this.pages.back.clip.lines[0]!,
             ]),
             [PageName.FRONT]: new Shadow(PageName.FRONT, this.pages.front.clip).add(
-                this.pages.back.clip.lines[0]!
+                this.pages.front.clip.lines[0]!
             ),
         };
         // const [top, right, bottom, left] = [
@@ -81,7 +78,7 @@ class Book extends Area {
                 origin: tl.clone(),
                 w,
                 h,
-                offset: -1,
+                offset: Offset.PREV,
                 align: this.align,
                 id: PageName.PREV,
             }),
@@ -89,7 +86,7 @@ class Book extends Area {
                 origin: currOrigin,
                 w,
                 h,
-                offset: 0,
+                offset: Offset.CURR,
                 align: this.align,
                 id: PageName.CURR,
             }),
@@ -97,7 +94,7 @@ class Book extends Area {
                 origin: tl.clone(),
                 w,
                 h,
-                offset: 1,
+                offset: Offset.NEXT,
                 align: this.align,
                 id: PageName.FRONT,
             }),
@@ -105,7 +102,7 @@ class Book extends Area {
                 origin: tl.clone(),
                 w,
                 h,
-                offset: 2,
+                offset: Offset.NEXT_2,
                 align: this.align,
                 id: PageName.BACK,
             }),
@@ -162,16 +159,16 @@ class Book extends Area {
         const { prev, curr } = this.pages;
         return this.align === Align.HORIZONTAL
             ? new Map<Area, [Area, Area, Point, number, number]>([
-                  [tl, [tl, bl, prev.root, -2, -3]],
-                  [tr, [tr, br, curr.root, 1, 2]],
-                  [bl, [tl, bl, prev.root, -2, -3]],
-                  [br, [tr, br, curr.root, 1, 2]],
+                  [tl, [tl, bl, prev.root, Offset.PREV_2, Offset.PREV_3]],
+                  [tr, [tr, br, curr.root, Offset.NEXT, Offset.NEXT_2]],
+                  [bl, [tl, bl, prev.root, Offset.PREV_2, Offset.PREV_3]],
+                  [br, [tr, br, curr.root, Offset.NEXT, Offset.NEXT_2]],
               ])
             : new Map<Area, [Area, Area, Point, number, number]>([
-                  [tl, [tr, tl, prev.root, -2, -3]],
-                  [tr, [tr, tl, prev.root, -2, -3]],
-                  [bl, [br, bl, curr.root, 1, 2]],
-                  [br, [br, bl, curr.root, 1, 2]],
+                  [tl, [tr, tl, prev.root, Offset.PREV_2, Offset.PREV_3]],
+                  [tr, [tr, tl, prev.root, Offset.PREV_2, Offset.PREV_3]],
+                  [bl, [br, bl, curr.root, Offset.NEXT, Offset.NEXT_2]],
+                  [br, [br, bl, curr.root, Offset.NEXT, Offset.NEXT_2]],
               ]);
     }
 
