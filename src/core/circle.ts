@@ -2,7 +2,7 @@ import Point from './point';
 import Line from './line';
 
 class Circle extends Point {
-    r: number;
+    override r: number;
 
     constructor(x = 0, y = 0, r = 0, id = '') {
         super(x, y, id);

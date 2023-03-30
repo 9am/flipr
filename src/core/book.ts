@@ -28,7 +28,7 @@ class Book extends Area {
     ml: Line; // middle line
     pages: Record<PageName, Page>; // pages object
     triggers: Record<TriggerName, Area>; // trigger object
-    shadows: Record<PageName, Shadow>; // trigger object
+    shadows: Record<PageName.BACK | PageName.FRONT, Shadow>; // trigger object
     rMap: Map<Area, Circle[]> = new Map(); // map of restriction circle
     dMap: Map<Area, [Point, Direction]> = new Map(); // map of destination
     aMap: Map<Area, [Area, Area, Point, number, number]> = new Map(); // map of active handle
@@ -251,10 +251,16 @@ class Book extends Area {
         // const trigger = Object.values(this.triggers).reduce((memo: Area | null, rect) => {
         let triggers = Object.values(this.triggers);
         if (isEndCover) {
-            triggers = [this.triggers.tl, this.triggers.bl];
+            triggers =
+                this.align === Align.HORIZONTAL
+                    ? [this.triggers.tl, this.triggers.bl]
+                    : [this.triggers.tl, this.triggers.tr];
         }
         if (isFrontCover) {
-            triggers = [this.triggers.tr, this.triggers.br];
+            triggers =
+                this.align === Align.HORIZONTAL
+                    ? [this.triggers.tr, this.triggers.br]
+                    : [this.triggers.bl, this.triggers.br];
         }
         let trigger = null;
         triggers.some((area) => {

@@ -38,9 +38,6 @@
         const content = document.getElementById('content');
         content.style = 'display: none';
         const items = Array.from({ length: 6}).reduce((memo, _, index) => {
-            // const item = document.createElement('img');
-            // item.className = 'content-item';
-            // item.src = `./img/${index % 6}.png`;
             const item = document.createElement('p');
             item.className = 'content-item';
             item.textContent = Array.from({ length: 475 }).map(() => index).join(' ');
@@ -52,8 +49,8 @@
         console.log('init.....');
 
         const flipr = new Flipr({
-            w: 800,
-            h: 600,
+            w: 680,
+            h: 400,
             // ph: 100,
             // pv: 100,
             // tSize: 20,

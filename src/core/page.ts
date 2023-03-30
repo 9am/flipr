@@ -58,27 +58,18 @@ class Page extends Area {
     }
 
     updateClip(points: Point[], trigger: Area): void {
-        const [p0, p1, p2, p3] = points;
+        const [p0, p1, p2, p3] = points as [Point, Point, Point, Point];
         const [c0, c1] = this.clip.points;
-        const test0 = [p0, p1, p3].find((p) => this.hit(p));
-        const test2 = [p2, p1, p3].find((p) => this.hit(p));
+        let d0, d1;
         if (this.align === Align.HORIZONTAL) {
-            c0!.val = test0!.isSolid() ? test0!.val : trigger.root.val;
-            c1!.val = test2!.isSolid() ? test2!.val : trigger.root.val;
+            d0 = [p0, p1, p3].find((p) => this.hit(p));
+            d1 = [p2, p1, p3].find((p) => this.hit(p));
         } else {
-            c0!.val = p1!.isSolid() ? p1!.val : trigger.root.val;
-            c1!.val = p3!.isSolid() ? p3!.val : trigger.root.val;
+            d0 = [p1, p0, p2].find((p) => this.hit(p));
+            d1 = [p3, p0, p2].find((p) => this.hit(p));
         }
-
-        // const [p0, p1, p2, p3] = points;
-        // const [c0, c1] = this.clip.points;
-        // if (this.align === Align.HORIZONTAL) {
-        //     c0!.val = p0!.isSolid() ? p0!.val : trigger.root.val;
-        //     c1!.val = p2!.isSolid() ? p2!.val : trigger.root.val;
-        // } else {
-        //     c0!.val = p1!.isSolid() ? p1!.val : trigger.root.val;
-        //     c1!.val = p3!.isSolid() ? p3!.val : trigger.root.val;
-        // }
+        c0!.val = d0?.isSolid() ? d0.val : trigger.root.val;
+        c1!.val = d1?.isSolid() ? d1.val : trigger.root.val;
     }
 
     mirror(page: Page, line: Line): void {
