@@ -21,7 +21,9 @@
 ---
 
 ## Demo
-[![Edit demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/demo-7h28lj?fontsize=14&hidenavigation=1&module=%2Fsrc%2Findex.js&theme=dark)
+<img alt="flipr-ss" src="https://user-images.githubusercontent.com/1435457/229063596-852e54f1-0af8-4446-8569-14580116377a.gif" width="400" />
+
+[![Edit random-image](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/random-image-xrnrfn?fontsize=14&hidenavigation=1&module=%2Fsrc%2Findex.js&theme=light)
 
 ## Features
 - Create a flipping book from **html content**.
