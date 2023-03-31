@@ -21,7 +21,7 @@ class CanvasPainter extends Painter {
         this._canvas.height = h * dpr;
         this._canvas.style.width = `${w}px`;
         this._canvas.style.height = `${h}px`;
-        this._canvas.className = 'painter';
+        this._canvas.className = 'flipr-painter';
         this._ctx = this._canvas.getContext('2d') as CanvasRenderingContext2D;
         this._ctx.scale(dpr, dpr);
     }
@@ -85,29 +85,28 @@ class CanvasPainter extends Painter {
     }
 
     draw(entity: Point | Circle | Line | Area | Page, content?: CanvasImageSource): void {
-        switch (entity.constructor.name) {
-            case 'Point':
+        switch (entity.name) {
+            case Point.NAME:
                 const point = entity as Point;
                 this.drawCircle(point.x, point.y);
                 this.drawText(point.id, point.x + 10, point.y - 10);
                 break;
-            case 'Circle':
+            case Circle.NAME:
                 const circle = entity as Circle;
                 this.drawCircle(circle.x, circle.y, circle.r);
                 this.drawText(circle.id, circle.x + 10, circle.y - 10);
                 break;
-            case 'Line':
+            case Line.NAME:
                 const line = entity as Line;
                 this.drawLine(line.points as [Point, Point]);
                 line.points.forEach((point) => this.draw(point));
                 break;
-            case 'Area':
-            case 'Book':
+            case Area.NAME:
                 const area = entity as Area;
                 this.drawPath(area.points);
                 area.points.forEach((point) => this.draw(point));
                 break;
-            case 'Page':
+            case Page.NAME:
                 const page = entity as Page;
                 this.drawClip(
                     content!,

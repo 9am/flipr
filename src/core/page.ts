@@ -4,6 +4,9 @@ import Point from './point';
 import { PageOptions, Align, Direction } from '../type';
 
 class Page extends Area {
+    static override NAME = 'page';
+    override readonly name = Page.NAME;
+
     static origin2Points(p: Point, w: number, h: number): Point[] {
         const [x, y] = p.val;
         return [

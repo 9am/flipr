@@ -1,4 +1,4 @@
-.painter {
+.flipr-painter {
     --w: 800;
     --h: 600;
     --padding: 20px;
@@ -25,7 +25,7 @@
 }
 
 /* pitem */
-.painter {
+.flipr-painter {
     .point,
     .mouse,
     .circle {
@@ -84,7 +84,7 @@
 }
 
 /* shadow */
-.painter {
+.flipr-painter {
     --dark: rgba(0,0,0,0.4);
     --light: rgba(0,0,0,0.1);
     --blank: transparent;
@@ -157,7 +157,7 @@
 }
 
 /* z-index */
-.painter {
+.flipr-painter {
     #page-prev {
         z-index: 0;
     }
@@ -179,7 +179,7 @@
 }
 
 /* vertical */
-.painter.vertical {
+.flipr-painter.vertical {
     .wrapper {
         .content {
             height: calc(50% - var(--ph) * 1px);

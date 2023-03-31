@@ -24,8 +24,8 @@ class Book extends Area {
     private _active: Area;
 
     align: Align;
-    bl: Line; // base line
-    ml: Line; // middle line
+    bl: Line = new Line([new Point(), new Point()], ''); // base line
+    ml: Line = new Line([0, 0, 0], ''); // middle line
     pages: Record<PageName, Page>; // pages object
     triggers: Record<TriggerName, Area>; // trigger object
     shadows: Record<PageName.BACK | PageName.FRONT, Shadow>; // trigger object
@@ -40,8 +40,6 @@ class Book extends Area {
     ) {
         super(points, '');
         this.align = align;
-        this.bl = new Line([new Point(), new Point()], '');
-        this.ml = new Line([0, 0, 0], '');
 
         this.pages = this.preparePage(points);
         this.triggers = this.prepareTrigger(points, tSize);

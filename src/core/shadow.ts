@@ -2,6 +2,9 @@ import Line from './line';
 import Area from './area';
 
 class Shadow {
+    static NAME = 'shadow';
+    readonly name = Shadow.NAME;
+
     readonly id: string = 'shadow';
     readonly clip: Area | undefined;
     private _lineMap: Map<string, Line> = new Map();

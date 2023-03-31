@@ -238,7 +238,7 @@ class Flipr {
                     this.mouse.moveTo(destination, true).then((res) => {
                         this.mouse.copyFrom(this.book.active.root);
                         this.list.index = this.list.index + direction * 2;
-                        console.log(destination, direction, this.list.index);
+                        // console.log(destination, direction, this.list.index);
                     });
                     break;
                 default:

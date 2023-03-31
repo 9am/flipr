@@ -7,6 +7,9 @@ const triangleArea = (a: Point, b: Point, c: Point): number => {
 };
 
 class Area {
+    static NAME = 'area';
+    readonly name = Area.NAME;
+
     id: string;
     private _points: Point[] = [];
     private _lines: Line[] = [];

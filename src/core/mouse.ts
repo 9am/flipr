@@ -2,6 +2,9 @@ import { Observable } from 'rxjs';
 import Point from './point';
 
 class Mouse extends Point {
+    static override NAME = 'mouse';
+    override readonly name = Mouse.NAME;
+
     private _intervalID = 0;
     private _a: any;
     private _b: any;

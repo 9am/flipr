@@ -2,6 +2,9 @@ import Point from './point';
 import Line from './line';
 
 class Circle extends Point {
+    static override NAME = 'circle';
+    override readonly name = Circle.NAME;
+
     override r: number;
 
     constructor(x = 0, y = 0, r = 0, id = '') {

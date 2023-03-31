@@ -3,6 +3,9 @@ import Point from './point';
 type abc = [a: number, b: number, c: number];
 
 class Line {
+    static NAME = 'line';
+    readonly name = Line.NAME;
+
     id: string;
     private _points: [Point, Point];
     private _abc: abc;
@@ -13,7 +16,7 @@ class Line {
     constructor(input: any, id = '') {
         this.id = id;
         this._mp = new Point(0, 0);
-        if (input.some((item: Point | number) => item.constructor.name === 'Point')) {
+        if (input.some((item: Point | number) => item instanceof Point)) {
             this._points = input;
             this._points.forEach(
                 (point, index) => (point.id = point.id || [this.id, index].join('-'))

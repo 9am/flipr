@@ -1,6 +1,7 @@
 import Point from '../core/point';
-import Line from '../core/line';
+import Mouse from '../core/mouse';
 import Circle from '../core/circle';
+import Line from '../core/line';
 import Area from '../core/area';
 import Page from '../core/page';
 import Shadow from '../core/shadow';
@@ -23,7 +24,7 @@ class DomPainter extends Painter {
     constructor(w: number, h: number, ph: number, pv: number, align: Align) {
         super();
         this._wrapper = document.createElement('div');
-        this._wrapper.className = `painter ${align}`;
+        this._wrapper.className = `flipr-painter ${align}`;
         updateProperties(this._wrapper, {
             '--w': w,
             '--h': h,
@@ -34,15 +35,15 @@ class DomPainter extends Painter {
     }
 
     addElement(entity: any, wrapper: HTMLElement = this.dom): void {
-        const etype = entity.constructor.name.toLowerCase();
-        const id = `${etype}-${entity.id}`;
+        const name = entity.name;
+        const id = `${name}-${entity.id}`;
         if (this._domMap.has(id)) {
             return;
         }
         const ele = document.createElement('i');
-        ele.className = `pitem ${etype}`;
+        ele.className = `pitem ${name}`;
         ele.id = id;
-        if (etype === 'page') {
+        if (name === Page.NAME) {
             const wrapper = document.createElement('div');
             wrapper.className = 'wrapper';
             const content = document.createElement('div');
@@ -50,7 +51,7 @@ class DomPainter extends Painter {
             wrapper.appendChild(content);
             ele.appendChild(wrapper);
         }
-        if (etype === 'shadow') {
+        if (name === Shadow.NAME) {
             entity.toArray().forEach((line: Line) => this.addElement(line, ele));
         }
         wrapper.appendChild(ele);
@@ -58,8 +59,7 @@ class DomPainter extends Painter {
     }
 
     getElement(entity: any): HTMLElement | undefined {
-        const etype = entity.constructor.name.toLowerCase();
-        const id = `${etype}-${entity.id}`;
+        const id = `${entity.name}-${entity.id}`;
         return this._domMap.get(id);
     }
 
@@ -84,9 +84,6 @@ class DomPainter extends Painter {
         const dom = this.getElement(entity);
         const [x, y] = entity.val;
         const radius = entity.r;
-        if (entity.id.match(/back-clip/)) {
-            dom!.textContent = entity.id;
-        }
         updateProperties(dom, {
             '--x': x,
             '--y': y,
@@ -153,28 +150,28 @@ class DomPainter extends Painter {
         content?: HTMLElement
     ): void {
         this.addElement(entity);
-        switch (entity.constructor.name) {
-            case 'Point':
-            case 'Circle':
-            case 'Mouse': {
+        switch (entity.name) {
+            case Point.NAME:
+            case Circle.NAME:
+            case Mouse.NAME: {
                 this.drawCircle(entity as Circle | Point);
                 break;
             }
-            case 'Line': {
+            case Line.NAME: {
                 this.drawLine(entity as Line);
                 break;
             }
-            case 'Area': {
+            case Area.NAME: {
                 const area = entity as Area;
                 this.drawPath(area);
                 area.points.forEach((point) => this.draw(point));
                 break;
             }
-            case 'Shadow': {
+            case Shadow.NAME: {
                 this.drawShadow(entity as Shadow);
                 break;
             }
-            case 'Page': {
+            case Page.NAME: {
                 const page = entity as Page;
                 this.drawPage(page, content);
                 break;

@@ -1,4 +1,7 @@
 class Point {
+    static NAME = 'point';
+    readonly name = Point.NAME;
+
     id: string;
     x: number;
     y: number;

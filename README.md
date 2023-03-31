@@ -37,6 +37,7 @@ npm install @9am/flipr
 #### Javascript
 ```js
 import Flipr from '@9am/flipr';
+import '@9am/flipr/style.css';
 
 // prepare some contents
 const content = Array.from({ length: 6}).reduce((memo, _, index) => {
