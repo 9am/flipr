@@ -18,6 +18,8 @@ class List {
         this.debug = debug;
         this._a = new Observable((arg) => {
             this._b = arg;
+        });
+        queueMicrotask(() => {
             this.index = index;
         });
     }

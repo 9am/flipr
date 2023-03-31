@@ -1,5 +1,5 @@
 <div align="center">
-    <img alt="flipr" src="https://user-images.githubusercontent.com/1435457/228783226-401a3e1a-f2eb-46d1-b499-7ee6f7637e0c.svg" width="240" />
+    <img alt="flipr" src="https://user-images.githubusercontent.com/1435457/229013561-28217a1c-5f36-48de-8af6-616aebe7a8dc.svg" width="240" />
     <h1>@9m/flipr</h1>
     <p>A flipping book library. 📖</p>
     <p>
@@ -21,6 +21,7 @@
 ---
 
 ## Demo
+[![Edit demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/demo-7h28lj?fontsize=14&hidenavigation=1&module=%2Fsrc%2Findex.js&theme=dark)
 
 ## Features
 - Create a flipping book from **html content**.
