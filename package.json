@@ -1,6 +1,6 @@
 {
   "name": "@9am/flipr",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A flipping book library.",
   "keywords": [
     "flip",
@@ -49,7 +49,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/9am/flip"
+    "url": "https://github.com/9am/flipr"
   },
   "private": false,
   "publishConfig": {

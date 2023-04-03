@@ -4,21 +4,7 @@ import Circle from './circle';
 import Line from './line';
 import Point from './point';
 import Shadow from './shadow';
-import { Align, Direction, Offset } from '../type';
-
-export enum TriggerName {
-    TL = 'tl',
-    TR = 'tr',
-    BL = 'bl',
-    BR = 'br',
-}
-
-export enum PageName {
-    PREV = 'prev',
-    CURR = 'curr',
-    BACK = 'back',
-    FRONT = 'front',
-}
+import { PageName, TriggerName, Align, Direction, Offset } from '../type';
 
 class Book extends Area {
     private _active: Area;
@@ -46,7 +32,6 @@ class Book extends Area {
         this.aMap = this.prepareActiveMap();
         this.rMap = this.prepareRestrainMap();
         this.dMap = this.prepareDestinationMap();
-        this._active = this.triggers.tl;
         this.shadows = {
             [PageName.BACK]: new Shadow(PageName.BACK, this).add([
                 this.pages.back.clip.lines[0]!,
@@ -55,6 +40,7 @@ class Book extends Area {
                 this.pages.front.clip.lines[0]!
             ),
         };
+        this._active = this.triggers.tr;
         // const [top, right, bottom, left] = [
         //     [this.triggers.tr, this.triggers.tl],
         //     [this.triggers.tr, this.triggers.br],

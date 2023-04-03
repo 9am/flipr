@@ -22,7 +22,9 @@ const getTick = ({
         return Object.entries(start).reduce(
             (memo, [key, value]) => ({
                 ...memo,
-                [key]: value + easing(currFrame / totalFrame) * (end[key] - value),
+                [key]:
+                    <number>value +
+                    easing(currFrame / totalFrame) * (end[key] - <number>value),
             }),
             {}
         );

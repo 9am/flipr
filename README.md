@@ -1,6 +1,6 @@
 <div align="center">
     <img alt="flipr" src="https://user-images.githubusercontent.com/1435457/229013561-28217a1c-5f36-48de-8af6-616aebe7a8dc.svg" width="240" />
-    <h1>@9m/flipr</h1>
+    <h1>@9am/flipr</h1>
     <p>A flipping book library. 📖</p>
     <p>
         <a href="https://github.com/9am/flipr/blob/main/LICENSE">

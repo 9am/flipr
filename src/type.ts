@@ -11,6 +11,7 @@ export interface FliprOptions {
     debug: boolean;
     content: HTMLElement;
     pageNum: number;
+    tTip?: TriggerName;
 }
 
 export interface PageOptions {
@@ -65,4 +66,18 @@ export enum Offset {
     CURR = 0,
     NEXT = +1,
     NEXT_2 = +2,
+}
+
+export enum TriggerName {
+    TL = 'tl',
+    TR = 'tr',
+    BL = 'bl',
+    BR = 'br',
+}
+
+export enum PageName {
+    PREV = 'prev',
+    CURR = 'curr',
+    BACK = 'back',
+    FRONT = 'front',
 }

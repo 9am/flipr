@@ -3,10 +3,11 @@ import Mouse from './core/mouse';
 import Area from './core/area';
 import List from './core/list';
 import Book from './core/book';
+import Tween from './core/tween';
 import Painter from './painter/base';
-import CanvasPainter from './painter/canvas';
+// import CanvasPainter from './painter/canvas';
 import DOMPainter from './painter/dom';
-import { fromEvent } from 'rxjs';
+import { interval, fromEvent } from 'rxjs';
 import {
     skip,
     startWith,
@@ -29,6 +30,7 @@ import {
     Hover,
     Align,
     Direction,
+    TriggerName,
 } from './type';
 import './index.css';
 
@@ -250,6 +252,22 @@ class Flipr {
             this.book.update(this.mouse);
             this.render();
         });
+
+        if (this.options.tTip) {
+            this.book.active = this.book.triggers[this.options.tTip] ?? this.book.active;
+            this.mouse.copyFrom(this.book.active.root);
+            interval(1000)
+                .pipe(
+                    map((index) => index % 2),
+                    takeUntil(trigger)
+                )
+                .subscribe((on) => {
+                    const destination = on
+                        ? this.book.active.points[0]
+                        : this.book.active.points[2];
+                    this.mouse.moveTo(destination!);
+                });
+        }
     }
 
     log(): void {
@@ -263,3 +281,4 @@ class Flipr {
 }
 
 export default Flipr;
+export type { FliprOptions, Align, TriggerName };
