@@ -1,7 +1,8 @@
 .flipr-painter {
+    --flipr-padding: 20px;
+    --flipr-bg: white;
     --w: 800;
     --h: 600;
-    --padding: 20px;
     position: relative;
     top: 0;
     left: 0;
@@ -74,8 +75,8 @@
             transform: var(--transform);
             transform-origin: top left;
             overflow: auto;
-            padding: var(--padding);
-            background: white;
+            padding: var(--flipr-padding);
+            background: var(--flipr-bg);
             &:empty {
                 /* visibility: hidden; */
             }
@@ -89,6 +90,8 @@
     --light: rgba(0,0,0,0.1);
     --blank: transparent;
     --percent: 0;
+    --pages-before: 0;
+    --pages-after: 0;
     .page {
         filter: drop-shadow(0 0 3px var(--light));
         &:has(.content:empty) {
@@ -107,7 +110,6 @@
                 right: 0;
                 width: 40px;
                 height: 100%;
-                background: green;
             }
         }
     }
@@ -133,6 +135,29 @@
             --stroke-width: calc(var(--scale-percent) * (var(--w) - var(--pv)) * 1px);
             border-radius: 30px;
             transform: var(--transform) translate3d(-50%, -50%, 0) scaleX(2);
+        }
+    }
+    #shadow-prev,
+    #shadow-curr {
+        filter: unset;
+        opacity: 1;
+        .line {
+            --stroke-width: 2px;
+            --stroke-color: green;
+            transform: var(--transform) translate3d(0, -100%, 0);
+            border-radius: 0;
+            background: repeating-linear-gradient(to bottom, white, white 1px, grey 1.5px);
+            clip-path: polygon(0% 100%, 2% 0%, 98% 0%, 100% 100%);
+        }
+    }
+    #shadow-prev {
+        .line {
+            --stroke-width: min(2%, calc(var(--pages-before) * 0.2%));
+        }
+    }
+    #shadow-curr {
+        .line {
+            --stroke-width: min(2%, calc(var(--pages-after) * 0.2%));
         }
     }
     #shadow-back {
@@ -169,6 +194,10 @@
     }
     #page-front {
         z-index: 4;
+    }
+    #shadow-prev,
+    #shadow-curr {
+        z-index: -1;
     }
     #shadow-back {
         z-index: 3;

@@ -1,6 +1,9 @@
 import { Observable } from 'rxjs';
 
 class List {
+    static NAME = 'list';
+    readonly name = List.NAME;
+
     readonly debug: boolean;
     private _a: any;
     private _b: any;
@@ -56,6 +59,14 @@ class List {
 
     get index(): number {
         return this._index;
+    }
+
+    get before(): number {
+        return Math.max(this._index - 2, 0);
+    }
+
+    get after(): number {
+        return Math.max(this.content.length - this._index - 2, 0);
     }
 
     get observable(): any {

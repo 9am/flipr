@@ -5,6 +5,7 @@ import Line from '../core/line';
 import Area from '../core/area';
 import Page from '../core/page';
 import Shadow from '../core/shadow';
+import List from '../core/list';
 import { Align, Offset } from '../type';
 import Painter from './base';
 
@@ -114,6 +115,15 @@ class DomPainter extends Painter {
         });
     }
 
+    drawList(entity: List) {
+        const dom = this.dom;
+        const { before, after } = entity;
+        updateProperties(dom, {
+            '--pages-before': before,
+            '--pages-after': after,
+        });
+    }
+
     drawPage(entity: Page, content: HTMLElement | undefined): void {
         const { origin, offset, w, h, rotation, clip } = entity;
         const path = clip.points.map((p: Point) => `${p.x},${p.y}`);
@@ -146,7 +156,7 @@ class DomPainter extends Painter {
     }
 
     draw(
-        entity: Point | Circle | Line | Area | Page | Shadow,
+        entity: Point | Circle | Line | Area | Page | Shadow | List,
         content?: HTMLElement
     ): void {
         this.addElement(entity);
@@ -169,6 +179,10 @@ class DomPainter extends Painter {
             }
             case Shadow.NAME: {
                 this.drawShadow(entity as Shadow);
+                break;
+            }
+            case List.NAME: {
+                this.drawList(entity as List);
                 break;
             }
             case Page.NAME: {

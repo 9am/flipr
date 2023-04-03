@@ -84,7 +84,7 @@ class CanvasPainter extends Painter {
         this._ctx.fillText(text, x, y);
     }
 
-    draw(entity: Point | Circle | Line | Area | Page, content?: CanvasImageSource): void {
+    draw(entity: List | Point | Circle | Line | Area | Page, content?: CanvasImageSource): void {
         switch (entity.name) {
             case Point.NAME:
                 const point = entity as Point;

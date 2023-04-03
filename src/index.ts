@@ -110,8 +110,11 @@ class Flipr {
                 this.book.pages.front,
                 this.list.getItemByOffset(this.book.pages.front.offset)
             );
+            this.painter.draw(this.book.shadows.prev);
+            this.painter.draw(this.book.shadows.curr);
             this.painter.draw(this.book.shadows.back);
             this.painter.draw(this.book.shadows.front);
+            this.painter.draw(this.list);
         }
     }
 

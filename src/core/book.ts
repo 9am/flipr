@@ -14,7 +14,7 @@ class Book extends Area {
     ml: Line = new Line([0, 0, 0], ''); // middle line
     pages: Record<PageName, Page>; // pages object
     triggers: Record<TriggerName, Area>; // trigger object
-    shadows: Record<PageName.BACK | PageName.FRONT, Shadow>; // trigger object
+    shadows: Record<PageName, Shadow>; // trigger object
     rMap: Map<Area, Circle[]> = new Map(); // map of restriction circle
     dMap: Map<Area, [Point, Direction]> = new Map(); // map of destination
     aMap: Map<Area, [Area, Area, Point, number, number]> = new Map(); // map of active handle
@@ -33,6 +33,12 @@ class Book extends Area {
         this.rMap = this.prepareRestrainMap();
         this.dMap = this.prepareDestinationMap();
         this.shadows = {
+            [PageName.PREV]: new Shadow(PageName.PREV).add([
+                this.pages.prev.clip.lines[align === Align.HORIZONTAL ? 3 : 0]!,
+            ]),
+            [PageName.CURR]: new Shadow(PageName.CURR).add([
+                this.pages.curr.clip.lines[align === Align.HORIZONTAL ? 1 : 2]!,
+            ]),
             [PageName.BACK]: new Shadow(PageName.BACK, this).add([
                 this.pages.back.clip.lines[0]!,
             ]),
