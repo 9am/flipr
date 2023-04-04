@@ -3,7 +3,7 @@ import Line from '../core/line';
 import Circle from '../core/circle';
 import Area from '../core/area';
 import Page from '../core/page';
-import Painter from './base';
+import Painter, { BASE_CLASS_NAME } from './base';
 
 class CanvasPainter extends Painter {
     private _canvas: HTMLCanvasElement;
@@ -21,7 +21,7 @@ class CanvasPainter extends Painter {
         this._canvas.height = h * dpr;
         this._canvas.style.width = `${w}px`;
         this._canvas.style.height = `${h}px`;
-        this._canvas.className = 'flipr-painter';
+        this._canvas.className = BASE_CLASS_NAME;
         this._ctx = this._canvas.getContext('2d') as CanvasRenderingContext2D;
         this._ctx.scale(dpr, dpr);
     }
@@ -84,7 +84,10 @@ class CanvasPainter extends Painter {
         this._ctx.fillText(text, x, y);
     }
 
-    draw(entity: List | Point | Circle | Line | Area | Page, content?: CanvasImageSource): void {
+    draw(
+        entity: List | Point | Circle | Line | Area | Page,
+        content?: CanvasImageSource
+    ): void {
         switch (entity.name) {
             case Point.NAME:
                 const point = entity as Point;

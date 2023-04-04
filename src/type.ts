@@ -11,7 +11,7 @@ export interface FliprOptions {
     debug: boolean;
     content: HTMLElement;
     pageNum: number;
-    tTip?: TriggerName;
+    tHint?: TriggerName;
 }
 
 export interface PageOptions {

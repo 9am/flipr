@@ -7,14 +7,15 @@ import Page from '../core/page';
 import Shadow from '../core/shadow';
 import List from '../core/list';
 import { Align, Offset } from '../type';
-import Painter from './base';
+import Painter, { BASE_CLASS_NAME } from './base';
+import CSS from '../index.module.css';
 
 const updateProperties = (
     dom: HTMLElement | undefined,
     properties: Record<string, string | number>
 ) => {
     for (const [key, value] of Object.entries(properties)) {
-        dom?.style.setProperty(key, `${value}`);
+        dom?.style.setProperty(key, `${value}`, 'important');
     }
 };
 
@@ -25,7 +26,7 @@ class DomPainter extends Painter {
     constructor(w: number, h: number, ph: number, pv: number, align: Align) {
         super();
         this._wrapper = document.createElement('div');
-        this._wrapper.className = `flipr-painter ${align}`;
+        this._wrapper.className = `${BASE_CLASS_NAME} ${CSS[align]}`;
         updateProperties(this._wrapper, {
             '--w': w,
             '--h': h,
@@ -42,17 +43,19 @@ class DomPainter extends Painter {
             return;
         }
         const ele = document.createElement('i');
-        ele.className = `pitem ${name}`;
+        ele.className = `${CSS.item} ${CSS[name]}`;
         ele.id = id;
         if (name === Page.NAME) {
+            ele.classList.add(CSS[id]!);
             const wrapper = document.createElement('div');
-            wrapper.className = 'wrapper';
+            wrapper.className = CSS.wrapper!;
             const content = document.createElement('div');
-            content.className = 'content';
+            content.className = CSS.content!;
             wrapper.appendChild(content);
             ele.appendChild(wrapper);
         }
         if (name === Shadow.NAME) {
+            ele.classList.add(CSS[id]!);
             entity.toArray().forEach((line: Line) => this.addElement(line, ele));
         }
         wrapper.appendChild(ele);
@@ -119,8 +122,8 @@ class DomPainter extends Painter {
         const dom = this.dom;
         const { before, after } = entity;
         updateProperties(dom, {
-            '--pages-before': before,
-            '--pages-after': after,
+            '--p-before': before,
+            '--p-after': after,
         });
     }
 
@@ -129,20 +132,20 @@ class DomPainter extends Painter {
         const path = clip.points.map((p: Point) => `${p.x},${p.y}`);
         const dom = this.getElement(entity);
         dom?.classList.toggle(
-            'side-a',
+            CSS.sideA!,
             offset === Offset.NEXT || offset === Offset.PREV_3 || offset === Offset.PREV
         );
         dom?.classList.toggle(
-            'side-b',
+            CSS.sideB!,
             offset === Offset.PREV_2 || offset === Offset.NEXT_2 || offset === Offset.CURR
         );
-        const wrapper = dom?.querySelector('.wrapper') as HTMLElement;
+        const wrapper = dom?.firstElementChild as HTMLElement;
         updateProperties(wrapper, {
             '--clip-path': `path('M ${path.join(' L ')} Z')`,
             '--rotation': `${rotation}rad`,
             '--transform': `translate3d(${origin.x}px, ${origin.y}px, 0) rotate(${rotation}rad)`,
         });
-        const cc = dom?.querySelector('.content') as HTMLElement;
+        const cc = wrapper?.firstElementChild as HTMLElement;
         if (!cc.contains(content as Node)) {
             cc?.replaceChildren(content ?? '');
         }

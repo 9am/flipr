@@ -32,7 +32,6 @@ import {
     Direction,
     TriggerName,
 } from './type';
-import './index.css';
 
 class Flipr {
     private painter: Painter;
@@ -256,8 +255,8 @@ class Flipr {
             this.render();
         });
 
-        if (this.options.tTip) {
-            this.book.active = this.book.triggers[this.options.tTip] ?? this.book.active;
+        if (this.options.tHint) {
+            this.book.active = this.book.triggers[this.options.tHint] ?? this.book.active;
             this.mouse.copyFrom(this.book.active.root);
             interval(1000)
                 .pipe(
@@ -283,5 +282,5 @@ class Flipr {
     }
 }
 
-export default Flipr;
 export type { FliprOptions, Align, TriggerName };
+export default Flipr;

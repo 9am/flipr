@@ -41,7 +41,7 @@ npm install @9am/flipr
 import Flipr from '@9am/flipr';
 import '@9am/flipr/style.css';
 
-// prepare some contents
+// prepare contents
 const content = Array.from({ length: 6}).reduce((memo, _, index) => {
     const item = document.createElement('p');
     item.textContent = Array.from({ length: 440 }).map(() => index).join(' ');
@@ -55,7 +55,9 @@ const flipr = new Flipr({
     w: 600,
     h: 400,
     content,
+    tHint: 'tr',
 });
+
 // append dom
 document.body.appendChild(flipr.dom);
 ```
@@ -66,14 +68,21 @@ document.body.appendChild(flipr.dom);
 
 | Name | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
-| `w` | number | **required** | width |
-| `h` | number | **required** | height |
-| `content` | HTMLElement | **required** | the content element whose children will be used to render book |
-| `ph` | number | 0 | padding horizontal |
-| `pv` | number | 0 | padding vertical |
-| `tSize` | number | 100 | trigger area size |
-| `align` | horizontal \| vertical | horizontal | align |
-| `pageNum` | number | 0 | default page num |
+| `w` | `number` | **required\*** | book width |
+| `h` | `number` | **required\*** | book height |
+| `content` | `HTMLElement` | **required\*** | the content element whose children will be used to render book |
+| `ph` | `number` | 0 | book padding horizontal |
+| `pv` | `number` | 0 | book padding vertical |
+| `align` | `'horizontal' \| 'vertical'` | 'horizontal' | book layout |
+| `tSize` | `number` | 100 | trigger area size |
+| `pageNum` | `number` | 0 | default page num |
+| `tHint` | `'tl' \| 'tr' \| 'bl' \| 'br'` | undefined | show hint trigger area before user interaction |
+
+### CSS properties
+| Name | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `--flipr-padding` | `css <padding>` | 20px | page padding |
+| `--flipr-bg` | `css <background>` | white | page background |
 
 ## License
 [MIT](LICENSE)

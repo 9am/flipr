@@ -9,6 +9,10 @@ export default defineConfig({
         postcss: {
             plugins: [postcssNesting],
         },
+        modules: {
+            generateScopedName: '-[local]-[hash:base64:5]',
+            localsConvention: 'dashes',
+        },
     },
     build: {
         lib: {

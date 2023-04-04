@@ -7,6 +7,8 @@ import Page from '../core/page';
 import Shadow from '../core/shadow';
 import List from '../core/list';
 
+export const BASE_CLASS_NAME = 'flipr-9am';
+
 export default abstract class Painter {
     abstract clear(): void;
     abstract draw(
