@@ -159,7 +159,7 @@ class DomPainter extends Painter {
     }
 
     draw(
-        entity: Point | Circle | Line | Area | Page | Shadow | List,
+        entity: Point | Circle | Mouse | Line | Area | Page | Shadow | List,
         content?: HTMLElement
     ): void {
         this.addElement(entity);

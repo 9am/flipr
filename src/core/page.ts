@@ -1,7 +1,8 @@
 import Area from './area';
 import Line from './line';
 import Point from './point';
-import { PageOptions, Align, Direction } from '../type';
+import type { PageOptions } from '../type';
+import { Align, Direction } from '../type';
 
 class Page extends Area {
     static override NAME = 'page';

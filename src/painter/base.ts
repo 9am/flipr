@@ -12,7 +12,7 @@ export const BASE_CLASS_NAME = 'flipr-9am';
 export default abstract class Painter {
     abstract clear(): void;
     abstract draw(
-        entity: List | Point | Circle | Mouse | Line | Area | Page | Shadow,
+        entity: Point | Circle | Mouse | Line | Area | Page | Shadow | List,
         content?: CanvasImageSource | HTMLElement
     ): void;
     abstract get dom(): HTMLElement;

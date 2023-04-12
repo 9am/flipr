@@ -1,7 +1,7 @@
 <div align="center">
-    <img alt="flipr" src="https://user-images.githubusercontent.com/1435457/229013561-28217a1c-5f36-48de-8af6-616aebe7a8dc.svg" width="240" />
+    <img alt="flipr" src="https://user-images.githubusercontent.com/1435457/230853123-9dbcfde7-1214-4ef9-bdf8-b7ebab147ec7.svg" width="240" />
     <h1>@9am/flipr</h1>
-    <p>A flipping book library. 📖</p>
+    <p><a href="https://github.com/9am/9am.github.io/issues/11">A flipping book library. 📖</a></p>
     <p>
         <a href="https://github.com/9am/flipr/blob/main/LICENSE">
             <img alt="GitHub" src="https://img.shields.io/github/license/9am/flipr?style=flat-square&color=success">
@@ -36,25 +36,26 @@
 npm install @9am/flipr
 ```
 
+#### HTML
+```html
+<ol id="content">
+    <li>1111111111</li>
+    <li>2222222222</li>
+    <li>3333333333</li>
+    <li>4444444444</li>
+</ol>
+```
+
 #### Javascript
 ```js
 import Flipr from '@9am/flipr';
 import '@9am/flipr/style.css';
 
-// prepare contents
-const content = Array.from({ length: 6}).reduce((memo, _, index) => {
-    const item = document.createElement('p');
-    item.textContent = Array.from({ length: 440 }).map(() => index).join(' ');
-    memo.appendChild(item);
-    return memo;
-}, document.createElement('div'));
-
-// init
 const flipr = new Flipr({
     /* FliprOptions */
     w: 600,
     h: 400,
-    content,
+    content: document.querySelector('#content'),
     tHint: 'tr',
 });
 
@@ -74,11 +75,12 @@ document.body.appendChild(flipr.dom);
 | `ph` | `number` | 0 | book padding horizontal |
 | `pv` | `number` | 0 | book padding vertical |
 | `align` | `'horizontal' \| 'vertical'` | 'horizontal' | book layout |
-| `tSize` | `number` | 100 | trigger area size |
 | `pageNum` | `number` | 0 | default page num |
-| `tHint` | `'tl' \| 'tr' \| 'bl' \| 'br'` | undefined | show hint trigger area before user interaction |
+| `tSize` | `number` | 100 | trigger area size |
+| `tHint` | `'tl' \| 'tr' \| 'bl' \| 'br' \| ''` | '' | show hint trigger area before user interaction |
+| `tHintInterval` | `number` | 1000 | hint animation interval in ms |
 
-### CSS properties
+### CSS Properties
 | Name | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
 | `--flipr-padding` | `css <padding>` | 20px | page padding |

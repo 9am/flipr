@@ -18,28 +18,34 @@
             align-items: center;
         }
         .content-item {
+            --bg: '';
             width: 100%;
             height: 100%;
-            display: grid;
-            grid-template-columns: 1fr;
-            background: floralwhite;
+            background: var(--bg) floralwhite repeat;
+        }
+        #bg {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="container"></div>
+    <svg id="bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10px" height="10px">
+        <text x="50%" y="50%" font-size="50%" text-anchor="middle" dominant-baseline="middle">num</text>
+    </svg>
     <script type="module">
         import Flipr from '/src';
 
+        const getNumBg = (num = 0) => document.querySelector('#bg')
+            .outerHTML.replace(/(\r|\n|\s{4})/g, '').replace(/"/g, "'").replace(/num/, num);
+
         const content = Array.from({ length: 9 }).reduce((memo, _, index) => {
-            const item = document.createElement('p');
+            const item = document.createElement('div');
             item.className = 'content-item';
-            item.textContent = Array.from({ length: 440 }).map(() => index).join(' ');
+            item.style.setProperty('--bg', `url("data:image/svg+xml,${getNumBg(index)}")`);
             memo.appendChild(item);
             return memo;
-        }, document.createElement('div'));
-
-        console.log('init.....');
+        }, document.createElement('section'));
 
         const flipr = new Flipr({
             w: 600,
@@ -50,13 +56,13 @@
             // align: 'vertical',
             // pageNum: 2,
             // tHint: 'tr',
+            // tHintInterval: 2000,
             // debug: true,
             content,
         });
         flipr.log();
 
-        const container = document.getElementById('container');
-        container.appendChild(flipr.dom);
+        document.getElementById('container').appendChild(flipr.dom);
     </script>
 </body>
 </html>

@@ -1,27 +1,6 @@
+import Flipr from '.';
 import Area from './core/area';
 import Point from './core/point';
-
-export interface FliprOptions {
-    w: number;
-    h: number;
-    ph: number;
-    pv: number;
-    tSize: number;
-    align: Align;
-    debug: boolean;
-    content: HTMLElement;
-    pageNum: number;
-    tHint?: TriggerName;
-}
-
-export interface PageOptions {
-    w: number;
-    h: number;
-    origin: Point;
-    offset: number;
-    align: Align;
-    id?: string;
-}
 
 export enum DragState {
     START = 'start',
@@ -80,4 +59,42 @@ export enum PageName {
     CURR = 'curr',
     BACK = 'back',
     FRONT = 'front',
+}
+
+interface FliprRequired {
+    w: number;
+    h: number;
+    content: HTMLElement;
+}
+interface FliprOptional {
+    ph?: number;
+    pv?: number;
+    tSize?: number;
+    align?: Align;
+    debug?: boolean;
+    pageNum?: number;
+    tHint?: TriggerName | '';
+    tHintInterval?: number;
+}
+
+export type FliprOptions = FliprRequired & FliprOptional;
+
+export const defaultOptions: Required<FliprOptional> = {
+    ph: 0,
+    pv: 0,
+    tSize: 100,
+    align: Align.HORIZONTAL,
+    pageNum: 0,
+    debug: false,
+    tHint: '',
+    tHintInterval: 1000,
+};
+
+export interface PageOptions {
+    w: number;
+    h: number;
+    origin: Point;
+    offset: number;
+    align: Align;
+    id?: string;
 }

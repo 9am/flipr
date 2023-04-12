@@ -1,8 +1,11 @@
 import Point from '../core/point';
-import Line from '../core/line';
 import Circle from '../core/circle';
+import Mouse from '../core/mouse';
+import Line from '../core/line';
 import Area from '../core/area';
 import Page from '../core/page';
+import Shadow from '../core/shadow';
+import List from '../core/list';
 import Painter, { BASE_CLASS_NAME } from './base';
 
 class CanvasPainter extends Painter {
@@ -85,7 +88,7 @@ class CanvasPainter extends Painter {
     }
 
     draw(
-        entity: List | Point | Circle | Line | Area | Page,
+        entity: Point | Circle | Mouse | Line | Area | Page | Shadow | List,
         content?: CanvasImageSource
     ): void {
         switch (entity.name) {

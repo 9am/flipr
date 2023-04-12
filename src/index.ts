@@ -5,9 +5,9 @@ import List from './core/list';
 import Book from './core/book';
 import Tween from './core/tween';
 import Painter from './painter/base';
-// import CanvasPainter from './painter/canvas';
+import CanvasPainter from './painter/canvas';
 import DOMPainter from './painter/dom';
-import { interval, fromEvent } from 'rxjs';
+import { Unsubscribable, interval, fromEvent, Observable } from 'rxjs';
 import {
     skip,
     startWith,
@@ -22,47 +22,28 @@ import {
     withLatestFrom,
     throttleTime,
 } from 'rxjs/operators';
-import {
-    FliprOptions,
-    DragState,
-    Drag,
-    HoverState,
-    Hover,
-    Align,
-    Direction,
-    TriggerName,
-} from './type';
+import type { FliprOptions, Drag, Hover } from './type';
+import { defaultOptions, DragState, HoverState } from './type';
 
 class Flipr {
+    readonly options: Required<FliprOptions>;
+    private root: Window = window;
     private painter: Painter;
-    root: Window;
-    options: FliprOptions;
-    mouse: Mouse;
-    book: Book;
-    list: List;
+    private mouse: Mouse;
+    private book: Book;
+    private list: List;
+    private listeners: Unsubscribable[] = [];
 
     constructor(options: FliprOptions) {
-        this.options = options;
-        this.root = window;
-
-        const {
-            w,
-            h,
-            ph = 0,
-            pv = 0,
-            tSize = 100,
-            align = Align.HORIZONTAL,
-            pageNum = 0,
-            content = document.createElement('div'),
-        } = this.options;
+        this.options = { ...defaultOptions, ...options };
+        const { w, h, content, ph, pv, tSize, align, pageNum, debug } = this.options;
         // this.painter = new CanvasPainter(w, h);
         this.painter = new DOMPainter(w, h, ph, pv, align);
         this.list = new List(
             Array.from(content.children).map((node) => node.cloneNode(true)),
             pageNum,
-            this.options.debug
+            debug
         );
-
         this.mouse = new Mouse();
         this.book = new Book(
             [
@@ -80,7 +61,7 @@ class Flipr {
         this.render();
     }
 
-    render(): void {
+    private render(): void {
         this.painter.clear();
 
         if (this.options.debug) {
@@ -118,7 +99,7 @@ class Flipr {
     }
 
     // listener
-    initListener(): void {
+    private initListener(): void {
         const toXY = (event: MouseEvent): Point => {
             const { x, y } = this.dom.getBoundingClientRect();
             return new Point(event.clientX - x, event.clientY - y);
@@ -160,7 +141,7 @@ class Flipr {
             )
         );
 
-        const drag = start.pipe(
+        const drag: Observable<any> = start.pipe(
             merge(middle, end),
             startWith({
                 start: new Point(),
@@ -200,87 +181,108 @@ class Flipr {
         const trigger = enterLeave.pipe(merge(move));
 
         // enter and leave
-        trigger.subscribe((action: any) => {
-            // console.log('trigger', action);
-            switch (action.state) {
-                case HoverState.ENTER:
-                    this.mouse.copyFrom(action.enter.root);
-                    break;
-                case HoverState.MIDDLE:
-                    if (this.mouse.prevent) {
-                        return;
-                    }
-                    this.mouse.moveTo(action.current);
-                    break;
-                case HoverState.LEAVE:
-                    if (this.mouse.prevent) {
-                        return;
-                    }
-                    this.mouse.moveTo(this.book.active.root);
-                    break;
-                default:
-                    break;
-            }
-        });
-        // drag
-        drag.pipe(skip(1)).subscribe((action: any) => {
-            // console.log('drag', action);
-            switch (action.state) {
-                case DragState.START:
-                    this.mouse.copyFrom(this.book.active.root);
-                    this.mouse.moveTo(action.current, true);
-                    break;
-                case DragState.MIDDLE:
-                    this.mouse.moveTo(action.current);
-                    break;
-                case DragState.END:
-                    const [destination, direction] = this.book.findDestination(
-                        action.enter,
-                        action.start,
-                        action.current
-                    );
-                    this.mouse.moveTo(destination, true).then((res) => {
+        this.listeners.push(
+            trigger.subscribe((action: any) => {
+                // console.log('trigger', action);
+                switch (action.state) {
+                    case HoverState.ENTER:
+                        this.mouse.copyFrom(action.enter.root);
+                        break;
+                    case HoverState.MIDDLE:
+                        if (this.mouse.prevent) {
+                            return;
+                        }
+                        this.mouse.moveTo(action.current);
+                        break;
+                    case HoverState.LEAVE:
+                        if (this.mouse.prevent) {
+                            return;
+                        }
+                        this.mouse.moveTo(this.book.active.root);
+                        break;
+                    default:
+                        break;
+                }
+            })
+        );
+        // dnd
+        this.listeners.push(
+            drag.pipe(skip(1)).subscribe((action: any) => {
+                // console.log('drag', action);
+                switch (action.state) {
+                    case DragState.START:
                         this.mouse.copyFrom(this.book.active.root);
-                        this.list.index = this.list.index + direction * 2;
-                        // console.log(destination, direction, this.list.index);
-                    });
-                    break;
-                default:
-                    break;
-            }
-        });
-
-        this.mouse.observable.pipe(merge(this.list.observable)).subscribe(() => {
-            this.book.update(this.mouse);
-            this.render();
-        });
-
-        if (this.options.tHint) {
-            this.book.active = this.book.triggers[this.options.tHint] ?? this.book.active;
-            this.mouse.copyFrom(this.book.active.root);
-            interval(1000)
-                .pipe(
-                    map((index) => index % 2),
-                    takeUntil(trigger)
-                )
-                .subscribe((on) => {
-                    const destination = on
-                        ? this.book.active.points[0]
-                        : this.book.active.points[2];
-                    this.mouse.moveTo(destination!);
-                });
+                        this.mouse.moveTo(action.current, true);
+                        break;
+                    case DragState.MIDDLE:
+                        this.mouse.moveTo(action.current);
+                        break;
+                    case DragState.END:
+                        const [destination, direction] = this.book.findDestination(
+                            action.enter,
+                            action.start,
+                            action.current
+                        );
+                        this.mouse.moveTo(destination, true).then((res) => {
+                            this.mouse.copyFrom(this.book.active.root);
+                            this.list.index = this.list.index + direction * 2;
+                            // console.log(destination, direction, this.list.index);
+                        });
+                        break;
+                    default:
+                        break;
+                }
+            })
+        );
+        // update
+        this.listeners.push(
+            this.mouse.observable.pipe(merge(this.list.observable)).subscribe(() => {
+                this.book.update(this.mouse);
+                this.render();
+            })
+        );
+        // active
+        const { tHint, tHintInterval } = this.options;
+        this.book.active = tHint
+            ? this.book.triggers[tHint] ?? this.book.active
+            : this.book.active;
+        this.mouse.copyFrom(this.book.active.root);
+        // hint
+        if (tHint) {
+            this.listeners.push(
+                interval(tHintInterval)
+                    .pipe(
+                        map((index) => index % 2),
+                        takeUntil(trigger)
+                    )
+                    .subscribe((on) => {
+                        const destination = on
+                            ? this.book.active.points[0]
+                            : this.book.active.points[2];
+                        this.mouse.moveTo(destination!);
+                    })
+            );
         }
+    }
+
+    private removeListener() {
+        this.listeners.forEach((listener: Unsubscribable) => listener.unsubscribe());
+        this.listeners = [];
+    }
+
+    get dom(): HTMLElement {
+        return this.painter.dom;
     }
 
     log(): void {
         console.log(JSON.stringify(this.options, null, 4));
     }
 
-    // accessor
-    get dom(): HTMLElement {
-        return this.painter.dom;
+    destory() {
+        this.removeListener();
     }
 }
 
-export type { FliprOptions, Align, TriggerName };
+export { Align, TriggerName } from './type';
+export type { FliprOptions } from './type';
 export default Flipr;
